@@ -179,7 +179,7 @@ func TestMakeDownloadSpec(t *testing.T) {
 		"Debian buster": {
 			etcFolder: "debianbuster",
 
-			expectedSpec: &DownloadSpec{
+			expectedSpec: &mongobin.DownloadSpec{
 				Version:        testMongoVersion,
 				Platform:       "linux",
 				SSLBuildNeeded: false,
@@ -191,7 +191,7 @@ func TestMakeDownloadSpec(t *testing.T) {
 			mongoVersion: "4.2.1",
 			etcFolder:    "debianbuster",
 
-			expectedSpec: &DownloadSpec{
+			expectedSpec: &mongobin.DownloadSpec{
 				Version:        "4.2.1",
 				Platform:       "linux",
 				SSLBuildNeeded: false,
@@ -203,7 +203,7 @@ func TestMakeDownloadSpec(t *testing.T) {
 			mongoVersion: "3.6.4",
 			etcFolder:    "debianbuster",
 
-			expectedSpec: &DownloadSpec{
+			expectedSpec: &mongobin.DownloadSpec{
 				Version:        "3.6.4",
 				Platform:       "linux",
 				SSLBuildNeeded: false,
@@ -215,7 +215,7 @@ func TestMakeDownloadSpec(t *testing.T) {
 			mongoVersion: "3.2.7",
 			etcFolder:    "debianbuster",
 
-			expectedSpec: &DownloadSpec{
+			expectedSpec: &mongobin.DownloadSpec{
 				Version:        "3.2.7",
 				Platform:       "linux",
 				SSLBuildNeeded: false,
