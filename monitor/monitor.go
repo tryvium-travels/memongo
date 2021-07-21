@@ -14,7 +14,7 @@ func RunMonitor(parent int, child int) (*exec.Cmd, error) {
 
 	err := cmd.Start()
 	if err != nil {
-		return nil, fmt.Errorf("Error starting watcher process: %s", err)
+		return nil, fmt.Errorf("error starting watcher process: %s", err)
 	}
 
 	return cmd, nil

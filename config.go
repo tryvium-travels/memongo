@@ -1,7 +1,6 @@
 package memongo
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -77,7 +76,7 @@ func (opts *Options) fillDefaults() error {
 		}
 		if opts.DownloadURL == "" {
 			if opts.MongoVersion == "" {
-				return errors.New("one of MongoVersion, DownloadURL, or MongodBin must be given")
+				return fmt.Errorf("one of MongoVersion, DownloadURL, or MongodBin must be given")
 			}
 			spec, err := mongobin.MakeDownloadSpec(opts.MongoVersion)
 			if err != nil {

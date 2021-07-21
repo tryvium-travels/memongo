@@ -2,7 +2,6 @@ package memongo
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -132,7 +131,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 			logger.Warnf("error removing data directory: %s", remErr)
 		}
 
-		return nil, errors.New("timed out waiting for mongod to start")
+		return nil, fmt.Errorf("timed out waiting for mongod to start")
 	}
 
 	logger.Debugf("mongod started up and reported a port number after %s", time.Since(startupTime).String())
@@ -221,25 +220,25 @@ func stdoutHandler(log *memongolog.Logger) (io.Writer, <-chan error, <-chan int)
 				if match := reReady.FindStringSubmatch(downcaseLine); match != nil {
 					port, err := strconv.Atoi(match[1])
 					if err != nil {
-						errChan <- errors.New("Could not parse port from mongod log line: " + downcaseLine)
+						errChan <- fmt.Errorf("could not parse port from mongod log line: %s", downcaseLine)
 					} else {
 						portChan <- port
 					}
 					haveSentMessage = true
 				} else if reAlreadyInUse.MatchString(downcaseLine) {
-					errChan <- errors.New("Mongod startup failed, address in use")
+					errChan <- fmt.Errorf("mongod startup failed, address in use")
 					haveSentMessage = true
 				} else if reAlreadyRunning.MatchString(downcaseLine) {
-					errChan <- errors.New("Mongod startup failed, already running")
+					errChan <- fmt.Errorf("mongod startup failed, already running")
 					haveSentMessage = true
 				} else if rePermissionDenied.MatchString(downcaseLine) {
-					errChan <- errors.New("mongod startup failed, permission denied")
+					errChan <- fmt.Errorf("mongod startup failed, permission denied")
 					haveSentMessage = true
 				} else if reDataDirectoryNotFound.MatchString(downcaseLine) {
-					errChan <- errors.New("Mongod startup failed, data directory not found")
+					errChan <- fmt.Errorf("mongod startup failed, data directory not found")
 					haveSentMessage = true
 				} else if reShuttingDown.MatchString(downcaseLine) {
-					errChan <- errors.New("Mongod startup failed, server shut down")
+					errChan <- fmt.Errorf("mongod startup failed, server shut down")
 					haveSentMessage = true
 				}
 			}
@@ -250,7 +249,7 @@ func stdoutHandler(log *memongolog.Logger) (io.Writer, <-chan error, <-chan int)
 		}
 
 		if !haveSentMessage {
-			errChan <- errors.New("Mongod exited before startup completed")
+			errChan <- fmt.Errorf("mongod exited before startup completed")
 		}
 	}()
 
