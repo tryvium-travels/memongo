@@ -32,7 +32,7 @@ const testHTTPHead = true
 
 func TestGetDownloadURL(t *testing.T) {
 	mongoVersionsToTest := []string{
-		"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13", "4.2.1",
+		"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13", "4.2.1", "4.4.7", "5.0.0",
 	}
 
 	tests := map[string]struct {
@@ -119,17 +119,19 @@ func TestGetDownloadURL(t *testing.T) {
 				Arch:     "x86_64",
 				OSName:   "rhel62",
 			},
-			mongoVersions: mongoVersionsToTest,
-			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel62-VERSION.tgz",
+			mongoVersions: []string{
+				"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13", "4.2.1", "4.4.7",
+			},
+			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel62-VERSION.tgz",
 		},
 		"Debian buster": {
-			spec: &DownloadSpec{
+			spec: &mongobin.DownloadSpec{
 				Platform: "linux",
 				Arch:     "x86_64",
 				OSName:   "debian10",
 			},
 			mongoVersions: []string{
-				"4.2.1",
+				"4.2.1", "4.4.7", "5.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian10-VERSION.tgz",
 		},
