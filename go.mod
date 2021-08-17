@@ -1,6 +1,6 @@
 module github.com/tryvium-travels/memongo
 
-go 1.16
+go 1.17
 
 require (
 	github.com/acobaugh/osrelease v0.0.0-20181218015638-a93a0a55a249

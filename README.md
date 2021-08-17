@@ -1,6 +1,14 @@
 # memongo
 
+<center>
+  <img src="./assets/logo.png" style="margin:25px" height="200">
+</center>
+
 [![CI](https://github.com/tryvium-travels/memongo/workflows/Go/badge.svg)](https://github.com/tryvium-travels/memongo/actions?workflow=Go) [![GoDoc](https://godoc.org/github.com/tryvium-travels/memongo?status.svg)](https://godoc.org/github.com/tryvium-travels/memongo) [![Go Report Card](https://goreportcard.com/badge/github.com/tryvium-travels/memongo)](https://goreportcard.com/report/github.com/tryvium-travels/memongo)
+
+> ***NOTE: This project started as a fork of [benweissmann/memongo project](https://github.com/benweissmann/memongo), but rapidly evolved to its own. While we thank and credit original creator for the job so far, we are going separate ways for the time being.***
+> 
+> ***This is the only memongo library officially supported and maintained by Tryvium Travels LTD***
 
 `memongo` is a Go package that spins up a real MongoDB server, backed by in-memory
 storage, for use in testing and mocking during development. It's based on
