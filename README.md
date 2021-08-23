@@ -110,13 +110,26 @@ Note that you must use MongoDB version 3.2 or greater, because the `ephemeralFor
 
 By default, `memongo` tries to detect the platform you're running on and download an official MongoDB release for it. If `memongo` doesn't yet support your platform, of you'd like to use a custom version of MongoDB, you can pass `DownloadURL` to `memongo.StartWithOptions` or set the environment variable `MEMONGO_DOWNLOAD_URL`.
 
+macOS running on Apple silicon (`GOOS darwin/arm64`) is a common, unsupported, platform. But as macOS will run MongoDB with Rosetta 2, you can still use `memongo` by specifying the download url.
+```
+	opts := &memongo.Options{
+		MongoVersion: "5.0.0",
+	}
+	if runtime.GOARCH == "arm64" {
+		if runtime.GOOS == "darwin" {
+			// Only set the custom url as workaround for arm64 macs
+			opts.DownloadURL = "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-5.0.0.tgz"
+		}
+	}
+```
+
 `memongo`'s caching will still work with custom download URLs.
 
 ## Use a custom MongoDB binary
 
 If you'd like to bypass `memongo`'s download beahvior entirely, you can pass `MongodBin` to `memongo.StartWithOptions`, or set the environment variable `MEMONGO_MONGOD_BIN` to the path to a `mongod` binary. `memongo` will use this binary instead of downloading one.
 
-If you're running on a platform that doesn't have an official MongoDB release (such as Alpine), you'll need to use this option.
+If you're running on a platform that doesn't have an official MongoDB release (such as Alpine), you'll need to use this option. 
 
 ## Reduce or increase logging
 
