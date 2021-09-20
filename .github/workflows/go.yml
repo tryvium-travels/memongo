@@ -28,23 +28,3 @@ jobs:
 
     - name: Run Unit Tests
       run: ./scripts/runUnitTests.sh
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-    - name: Set up latest stable Go 
-      uses: actions/setup-go@v2
-      with:
-        go-version: "^1.16"
-      id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
-    - name: Lint
-      run: |
-        mkdir ./bin
-        curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin v1.21.0
-        export PATH="$(pwd)/bin:$PATH"
-        ./scripts/runLint.sh
