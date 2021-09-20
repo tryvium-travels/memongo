@@ -39,6 +39,7 @@ type DownloadSpec struct {
 	// - debian81
 	// - suse12
 	// - rhel70
+	// - rhel80
 	// - rhel62
 	// - amazon
 	// - amazon2
@@ -204,8 +205,11 @@ func osNameFromOsRelease(osRelease map[string]string, mongoVersion []int) string
 		if majorVersion >= 12 {
 			return "suse12"
 		}
-	case "rhel":
-		if majorVersion >= 7 {
+	case "centos", "rhel":
+		if majorVersion >= 8 {
+			return "rhel80"
+		}
+		if majorVersion == 7 {
 			return "rhel70"
 		}
 	case "debian":

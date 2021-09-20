@@ -139,6 +139,17 @@ func TestMakeDownloadSpec(t *testing.T) {
 				OSName:         "suse12",
 			},
 		},
+		"CENTOS 8": {
+			etcFolder: "centos8",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        testMongoVersion,
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "x86_64",
+				OSName:         "rhel80",
+			},
+		},
 		"RHEL 7": {
 			etcFolder: "rhel7",
 
