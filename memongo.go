@@ -141,15 +141,9 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	logger.Debugf("mongod started up and reported a port number after %s", time.Since(startupTime).String())
 
 	// ---------- START OF REPLICA CODE ----------
-	// TODO: see benweissman's comments on the original PR:
-	// https://github.com/benweissmann/memongo/pull/6/files#r566993296
 	if opts.ShouldUseReplica {
-		// TODO: we should extract the mongo binary from the downloaded archive
-		// and use that here.
-		// otherwise the user will get a 127 code error if they don't have it installed
-		mongoCommand := fmt.Sprintf("mongo --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
 		//nolint:gosec
-		replicaSetCommand := exec.Command("bash", "-c", mongoCommand)
+		replicaSetCommand := exec.Command("bash", "-c", "mongo", "--port", fmt.Sprintf("%d", opts.Port), "--retryWrites", "--eval", "\"rs.initiate()\"")
 		replicaSetCommand.Stdout = stdoutHandler
 		replicaSetCommand.Stderr = stderrHandler(logger)
 
@@ -213,12 +207,14 @@ func (s *Server) Stop() {
 }
 
 // Cribbed from https://github.com/nodkz/mongodb-memory-server/blob/master/packages/mongodb-memory-server-core/src/util/MongoInstance.ts#L206
-var reReady = regexp.MustCompile(`waiting for connections.*port\D*(\d+)`)
-var reAlreadyInUse = regexp.MustCompile("addr already in use")
-var reAlreadyRunning = regexp.MustCompile("mongod already running")
-var rePermissionDenied = regexp.MustCompile("mongod permission denied")
-var reDataDirectoryNotFound = regexp.MustCompile("data directory .*? not found")
-var reShuttingDown = regexp.MustCompile("shutting down with code")
+var (
+	reReady                 = regexp.MustCompile(`waiting for connections.*port\D*(\d+)`)
+	reAlreadyInUse          = regexp.MustCompile("addr already in use")
+	reAlreadyRunning        = regexp.MustCompile("mongod already running")
+	rePermissionDenied      = regexp.MustCompile("mongod permission denied")
+	reDataDirectoryNotFound = regexp.MustCompile("data directory .*? not found")
+	reShuttingDown          = regexp.MustCompile("shutting down with code")
+)
 
 // The stdout handler relays lines from mongod's stout to our logger, and also
 // watches during startup for error or success messages.
