@@ -71,7 +71,7 @@ Spin up a replica set server:
 var mongoServer memongo.Server;
 
 func TestMain(m *testing.M) {
-  mongoServer, err = memongo.StartWitOptions(&memongo.Options{MongoVersion: "4.2.1", ShouldUseReplica: true})
+  mongoServer, err = memongo.StartWithOptions(&memongo.Options{MongoVersion: "4.2.1", ShouldUseReplica: true})
   if (err != nil) {
     log.Fatal(err)
   }
