@@ -5,10 +5,12 @@ import (
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -130,6 +132,22 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 
 	renameErr := Afs.Rename(mongodTmpFile.Name(), mongodPath)
 	if renameErr != nil {
+		linkErr := &os.LinkError{}
+		if errors.As(renameErr, &linkErr) {
+			// If /tmp is on another filesystem, we have to copy the file instead.
+			logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
+			mongodFile, err := Afs.Create(mongodPath)
+			if err != nil {
+				return "", fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
+			}
+			defer mongodFile.Close()
+
+			_, copyErr := io.Copy(mongodFile, mongodTmpFile)
+			if copyErr != nil {
+				fmt.Errorf("error copying mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, copyErr)
+			}
+		}
+
 		return "", fmt.Errorf("error writing mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, renameErr)
 	}
 
