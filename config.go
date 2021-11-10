@@ -17,6 +17,10 @@ import (
 
 // Options is the configuration options for a launched MongoDB binary
 type Options struct {
+	// ShouldUseReplica indicates whether a replica should be used. If this is not specified,
+	// no replica will be used and mongo server will be run as standalone.
+	ShouldUseReplica bool
+
 	// Port to run MongoDB on. If this is not specified, a random (OS-assigned)
 	// port will be used
 	Port int

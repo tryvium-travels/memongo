@@ -62,6 +62,10 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	//  Safe to pass binPath and dbDir
 	//nolint:gosec
 	cmd := exec.Command(binPath, "--storageEngine", "ephemeralForTest", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port))
+	if opts.ShouldUseReplica {
+		//nolint:gosec
+		cmd = exec.Command(binPath, "--storageEngine", "wiredTiger", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port), "--replSet", "rs0", "--bind_ip", "localhost")
+	}
 
 	stdoutHandler, startupErrCh, startupPortCh := stdoutHandler(logger)
 	cmd.Stdout = stdoutHandler
@@ -135,6 +139,31 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	}
 
 	logger.Debugf("mongod started up and reported a port number after %s", time.Since(startupTime).String())
+
+	// ---------- START OF REPLICA CODE ----------
+	// TODO: see benweissman's comments on the original PR:
+	// https://github.com/benweissmann/memongo/pull/6/files#r566993296
+	if opts.ShouldUseReplica {
+		// TODO: we should extract the mongo binary from the downloaded archive
+		// and use that here.
+		// otherwise the user will get a 127 code error if they don't have it installed
+		mongoCommand := fmt.Sprintf("mongo --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
+		//nolint:gosec
+		replicaSetCommand := exec.Command("bash", "-c", mongoCommand)
+		replicaSetCommand.Stdout = stdoutHandler
+		replicaSetCommand.Stderr = stderrHandler(logger)
+
+		// Initiate Replica
+		err2 := replicaSetCommand.Run()
+		if err2 != nil {
+			logger.Warnf("Error initiating replica: %v", err2)
+
+			return nil, err
+		}
+
+		logger.Debugf("Started mongo replica")
+	}
+	// ---------- END OF REPLICA CODE ----------
 
 	// Return a Memongo server
 	return &Server{
