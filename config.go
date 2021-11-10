@@ -106,22 +106,12 @@ func (opts *Options) fillDefaults() error {
 	}
 
 	if opts.Port == 0 {
-		// MongoDB after version 4 correctly reports what port it's running on if
-		// we tell it to run on port 0, which is ideal -- we just start it on port
-		// 0, the OS assigns a port, and mongo reports in the logs what port it
-		// got.
-		//
-		// For earlier versions, mongo just print "waiting for connections on port 0"
-		// which is unhelpful. So we start up a server and see what port we get,
-		// then shut down that server
-		if opts.MongoVersion == "" || parseMongoMajorVersion(opts.MongoVersion) < 4 {
-			port, err := getFreePort()
-			if err != nil {
-				return fmt.Errorf("error finding a free port: %s", err)
-			}
-
-			opts.Port = port
+		port, err := getFreePort()
+		if err != nil {
+			return fmt.Errorf("error finding a free port: %s", err)
 		}
+
+		opts.Port = port
 
 		if opts.StartupTimeout == 0 {
 			opts.StartupTimeout = 10 * time.Second
