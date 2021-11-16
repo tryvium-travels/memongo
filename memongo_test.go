@@ -35,7 +35,7 @@ func TestDefaultOptions(t *testing.T) {
 }
 
 func TestWithReplica(t *testing.T) {
-	versions := []string{"3.6.13", "4.0.13", "4.2.1"}
+	versions := []string{"4.4.7", "5.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
