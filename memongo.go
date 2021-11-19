@@ -64,7 +64,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	cmd := exec.Command(binPath, "--storageEngine", "ephemeralForTest", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port))
 	if opts.ShouldUseReplica {
 		//nolint:gosec
-		cmd = exec.Command(binPath, "--storageEngine", "ephemeralForTest", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port), "--replSet", "rs0", "--bind_ip", "localhost")
+		cmd = exec.Command(binPath, "--storageEngine", "wiredTiger", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port), "--replSet", "rs0", "--bind_ip", "localhost")
 	}
 
 	stdoutHandler, startupErrCh, startupPortCh := stdoutHandler(logger)
