@@ -147,14 +147,14 @@ By default, `memongo` logs to stdout. To log somewhere else, specify a `Logger` 
 ### Known bugs with Apple Silicon M1
 
 macOS running on Apple silicon (`GOOS darwin/arm64`) is a common, unsupported, platform. But as macOS will run MongoDB with Rosetta 2, you can still use `memongo` by specifying the download url.
-```
-	opts := &memongo.Options{
-		MongoVersion: "5.0.0",
-	}
-	if runtime.GOARCH == "arm64" {
-		if runtime.GOOS == "darwin" {
-			// Only set the custom url as workaround for arm64 macs
-			opts.DownloadURL = "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-5.0.0.tgz"
-		}
-	}
+```go
+opts := &memongo.Options{
+  MongoVersion: "5.0.0",
+}
+if runtime.GOARCH == "arm64" {
+  if runtime.GOOS == "darwin" {
+    // Only set the custom url as workaround for arm64 macs
+    opts.DownloadURL = "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-5.0.0.tgz"
+  }
+}
 ```
