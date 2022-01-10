@@ -59,13 +59,22 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	// Construct the command and attach stdout/stderr handlers
 
+	engine := "ephemeralForTest"
+	args := []string{"--dbpath", dbDir, "--port", strconv.Itoa(opts.Port)}
+	if opts.ShouldUseReplica {
+		engine = "wiredTiger"
+		args = append(args, []string{"--replSet", "rs0", "--bind_ip", "localhost"}...)
+	}
+
+	if opts.Auth {
+		args = append(args, "--auth")
+	}
+
+	args = append(args, []string{"--storageEngine", engine}...)
+
 	//  Safe to pass binPath and dbDir
 	//nolint:gosec
-	cmd := exec.Command(binPath, "--storageEngine", "ephemeralForTest", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port))
-	if opts.ShouldUseReplica {
-		//nolint:gosec
-		cmd = exec.Command(binPath, "--storageEngine", "wiredTiger", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port), "--replSet", "rs0", "--bind_ip", "localhost")
-	}
+	cmd := exec.Command(binPath, args...)
 
 	stdoutHandler, startupErrCh, startupPortCh := stdoutHandler(logger)
 	cmd.Stdout = stdoutHandler
