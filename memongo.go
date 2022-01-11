@@ -59,13 +59,36 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	// Construct the command and attach stdout/stderr handlers
 
+	engine := "ephemeralForTest"
+	args := []string{"--dbpath", dbDir, "--port", strconv.Itoa(opts.Port)}
+	if opts.ShouldUseReplica {
+		engine = "wiredTiger"
+		args = append(args, []string{"--replSet", "rs0", "--bind_ip", "localhost"}...)
+	}
+
+	if opts.Auth {
+		args = append(args, "--auth")
+		// A keyfile needs to be specified if auth and a replicaset are used
+		if opts.ShouldUseReplica {
+			tmpFile, err := ioutil.TempFile("", "keyfile")
+			// This library is specifically intended for ephemeral mongo
+			// databases so we don't need a lot of security here, however
+			// if you're reading this file trying to figure out how to generate
+			// a keyfile, please see the official MongoDB documentation on how
+			// to do this correctly and securely for a production environment.
+			tmpFile.Write([]byte("insecurekeyfile"))
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, "--keyFile", tmpFile.Name())
+		}
+	}
+
+	args = append(args, []string{"--storageEngine", engine}...)
+
 	//  Safe to pass binPath and dbDir
 	//nolint:gosec
-	cmd := exec.Command(binPath, "--storageEngine", "ephemeralForTest", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port))
-	if opts.ShouldUseReplica {
-		//nolint:gosec
-		cmd = exec.Command(binPath, "--storageEngine", "wiredTiger", "--dbpath", dbDir, "--port", strconv.Itoa(opts.Port), "--replSet", "rs0", "--bind_ip", "localhost")
-	}
+	cmd := exec.Command(binPath, args...)
 
 	stdoutHandler, startupErrCh, startupPortCh := stdoutHandler(logger)
 	cmd.Stdout = stdoutHandler

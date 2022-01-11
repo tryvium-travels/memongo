@@ -49,6 +49,10 @@ type Options struct {
 	// How long to wait for mongod to start up and report a port number. Does
 	// not include download time, only startup time. Defaults to 10 seconds.
 	StartupTimeout time.Duration
+
+	// If set, pass the --auth flag to mongod. This will allow tests to setup
+	// authentication.
+	Auth bool
 }
 
 func (opts *Options) fillDefaults() error {
