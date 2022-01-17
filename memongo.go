@@ -88,7 +88,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	//  Safe to pass binPath and dbDir
 	//nolint:gosec
-	cmd := exec.Command(binPath, args...)
+	cmd := exec.Command(binPath.Mongod, args...)
 
 	stdoutHandler, startupErrCh, startupPortCh := stdoutHandler(logger)
 	cmd.Stdout = stdoutHandler
@@ -166,7 +166,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	// ---------- START OF REPLICA CODE ----------
 	if opts.ShouldUseReplica {
 		//nolint:gosec
-		mongoCommand := fmt.Sprintf("mongo --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
+		mongoCommand := fmt.Sprintf("%s --port %d --retryWrites --eval \"rs.initiate()\"", binPath.Mongosh, opts.Port)
 		//nolint:gosec
 		replicaSetCommand := exec.Command("bash", "-c", mongoCommand)
 		replicaSetCommand.Stdout = stdoutHandler

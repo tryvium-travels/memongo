@@ -40,6 +40,9 @@ type Options struct {
 	// If given, this binary will be run instead of downloading a mongod binary
 	MongodBin string
 
+	// If given, this binary will be run instead of downloading a mongosh binary
+	MongoShellBin string
+
 	// Logger for printing messages. Defaults to printing to stdout.
 	Logger *log.Logger
 
@@ -50,6 +53,9 @@ type Options struct {
 	// not include download time, only startup time. Defaults to 10 seconds.
 	StartupTimeout time.Duration
 
+	// The URL to get mongosh from
+	ShellDownloadURL string
+
 	// If set, pass the --auth flag to mongod. This will allow tests to setup
 	// authentication.
 	Auth bool
@@ -59,7 +65,10 @@ func (opts *Options) fillDefaults() error {
 	if opts.MongodBin == "" {
 		opts.MongodBin = os.Getenv("MEMONGO_MONGOD_BIN")
 	}
-	if opts.MongodBin == "" {
+	if opts.MongoShellBin == "" {
+		opts.MongoShellBin = os.Getenv("MEMONGO_MONGOSH_BIN")
+	}
+	if opts.MongodBin == "" || opts.MongoShellBin == "" {
 		// The user didn't give us a local path to a binary. That means we need
 		// a download URL and a cache path.
 
@@ -92,6 +101,16 @@ func (opts *Options) fillDefaults() error {
 			}
 
 			opts.DownloadURL = spec.GetDownloadURL()
+		}
+		if opts.MongoShellBin != "" {
+			// if the shell bin has been provided, we should leave the downloadURL as empty
+			opts.ShellDownloadURL = ""
+		} else if opts.ShellDownloadURL == "" {
+			spec, err := mongobin.MakeDownloadSpec(opts.MongoVersion)
+			if err != nil {
+				return err
+			}
+			opts.ShellDownloadURL = spec.GetShellDownloadURL()
 		}
 	}
 
@@ -129,15 +148,18 @@ func (opts *Options) getLogger() *memongolog.Logger {
 	return memongolog.New(opts.Logger, opts.LogLevel)
 }
 
-func (opts *Options) getOrDownloadBinPath() (string, error) {
-	if opts.MongodBin != "" {
-		return opts.MongodBin, nil
-	}
+func (opts *Options) getOrDownloadBinPath() (*mongobin.MongoPaths, error) {
 
 	// Download or fetch from cache
-	binPath, err := mongobin.GetOrDownloadMongod(opts.DownloadURL, opts.CachePath, opts.getLogger())
+	binPath, err := mongobin.GetOrDownloadMongod(opts.DownloadURL, opts.ShellDownloadURL, opts.CachePath, opts.getLogger())
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	if opts.MongodBin != "" {
+		binPath.Mongod = opts.MongodBin
+	}
+	if opts.MongoShellBin != "" {
+		binPath.Mongosh = opts.MongoShellBin
 	}
 
 	return binPath, nil
