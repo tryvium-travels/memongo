@@ -2,6 +2,7 @@ package memongo
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,6 +32,26 @@ func Start(version string) (*Server, error) {
 	return StartWithOptions(&Options{
 		MongoVersion: version,
 	})
+}
+
+// Initialize will get the dependencies, but will not start the service
+func Initialize(opts *Options) error {
+	err := opts.fillDefaults()
+	if err != nil {
+		return err
+	}
+	logger := opts.getLogger()
+
+	logger.Infof("Starting MongoDB with options %#v", opts)
+
+	binPath, err := opts.getOrDownloadBinPath()
+	if err != nil {
+		return err
+	}
+	if binPath == nil {
+		return errors.New("binPath was nil")
+	}
+	return nil
 }
 
 // StartWithOptions is like Start(), but accepts options.
