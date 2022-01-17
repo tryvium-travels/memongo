@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tryvium-travels/memongo/memongolog"
-	"github.com/tryvium-travels/memongo/monitor"
+	"github.com/ntaylor-barnett/memongo/memongolog"
+	"github.com/ntaylor-barnett/memongo/monitor"
 )
 
 // Server represents a running MongoDB server

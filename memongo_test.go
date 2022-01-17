@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/tryvium-travels/memongo"
-	"github.com/tryvium-travels/memongo/memongolog"
+	"github.com/ntaylor-barnett/memongo"
+	"github.com/ntaylor-barnett/memongo/memongolog"
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"

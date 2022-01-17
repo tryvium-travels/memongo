@@ -3,11 +3,11 @@ package mongobin_test
 import (
 	"testing"
 
+	"github.com/ntaylor-barnett/memongo/memongolog"
+	"github.com/ntaylor-barnett/memongo/mongobin"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tryvium-travels/memongo/memongolog"
-	"github.com/tryvium-travels/memongo/mongobin"
 )
 
 func TestGetOrDownload(t *testing.T) {
