@@ -2,6 +2,7 @@ package memongo
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tryvium-travels/memongo/memongolog"
-	"github.com/tryvium-travels/memongo/monitor"
+	"github.com/ntaylor-barnett/memongo/memongolog"
+	"github.com/ntaylor-barnett/memongo/monitor"
 )
 
 // Server represents a running MongoDB server
@@ -31,6 +32,26 @@ func Start(version string) (*Server, error) {
 	return StartWithOptions(&Options{
 		MongoVersion: version,
 	})
+}
+
+// Initialize will get the dependencies, but will not start the service
+func Initialize(opts *Options) error {
+	err := opts.fillDefaults()
+	if err != nil {
+		return err
+	}
+	logger := opts.getLogger()
+
+	logger.Infof("Starting MongoDB with options %#v", opts)
+
+	binPath, err := opts.getOrDownloadBinPath()
+	if err != nil {
+		return err
+	}
+	if binPath == nil {
+		return errors.New("binPath was nil")
+	}
+	return nil
 }
 
 // StartWithOptions is like Start(), but accepts options.
@@ -88,7 +109,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	//  Safe to pass binPath and dbDir
 	//nolint:gosec
-	cmd := exec.Command(binPath, args...)
+	cmd := exec.Command(binPath.Mongod, args...)
 
 	stdoutHandler, startupErrCh, startupPortCh := stdoutHandler(logger)
 	cmd.Stdout = stdoutHandler
@@ -166,7 +187,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	// ---------- START OF REPLICA CODE ----------
 	if opts.ShouldUseReplica {
 		//nolint:gosec
-		mongoCommand := fmt.Sprintf("mongo --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
+		mongoCommand := fmt.Sprintf("%s --port %d --retryWrites --eval \"rs.initiate()\"", binPath.Mongosh, opts.Port)
 		//nolint:gosec
 		replicaSetCommand := exec.Command("bash", "-c", mongoCommand)
 		replicaSetCommand.Stdout = stdoutHandler

@@ -4,8 +4,8 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/ntaylor-barnett/memongo/mongobin"
 	"github.com/stretchr/testify/require"
-	"github.com/tryvium-travels/memongo/mongobin"
 )
 
 const testMongoVersion = "4.0.5"

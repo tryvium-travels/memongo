@@ -31,3 +31,9 @@ func (spec *DownloadSpec) GetDownloadURL() string {
 		archiveName,
 	)
 }
+
+// GetShellDownloadURL returns the download URL to get the mongosh utility. This just returns a single linux TGZ file.
+func (spec *DownloadSpec) GetShellDownloadURL() string {
+	archiveName := "https://downloads.mongodb.com/compass/mongosh-1.1.8-linux-x64.tgz"
+	return archiveName
+}
