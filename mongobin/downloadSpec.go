@@ -19,6 +19,8 @@ var GoArch = runtime.GOARCH
 type DownloadSpec struct {
 	// Version is what version of MongoDB to download
 	Version string
+	// ShellVersion is what version of the Mongosh to download
+	ShellVersion string
 
 	// Platform is "osx" or "linux"
 	Platform string
@@ -82,6 +84,7 @@ func MakeDownloadSpec(version string) (*DownloadSpec, error) {
 		SSLBuildNeeded: ssl,
 		Platform:       platform,
 		OSName:         osName,
+		ShellVersion:   "1.1.9",
 	}, nil
 }
 

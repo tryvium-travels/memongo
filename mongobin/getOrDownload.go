@@ -158,7 +158,7 @@ type MongoPaths struct {
 // at the given URL. If the URL has not yet been downloaded, it's downloaded
 // and saved the the cache. If it has been downloaded, the existing mongod
 // path is returned.
-func GetOrDownloadMongod(urlStr string, mongoshUrl string, cachePath string, logger *memongolog.Logger) (*MongoPaths, error) {
+func GetOrDownloadMongod(urlStr string, mongoshUrl string, cachePath string, logger *memongolog.Logger, force bool) (*MongoPaths, error) {
 	var urlToUse string
 
 	if urlStr != "" {
@@ -191,23 +191,25 @@ func GetOrDownloadMongod(urlStr string, mongoshUrl string, cachePath string, log
 		reqFiles = append(reqFiles, mongoshFiles...)
 	}
 	filesMissing := false
-	for _, f := range reqFiles {
-		existsInCache, existsErr := Afs.Exists(path.Join(dirPath, f))
-		if existsErr != nil {
-			return nil, fmt.Errorf("error while checking for mongod in cache: %s", existsErr)
+	if !force {
+		for _, f := range reqFiles {
+			existsInCache, existsErr := Afs.Exists(path.Join(dirPath, f))
+			if existsErr != nil {
+				return nil, fmt.Errorf("error while checking for mongod in cache: %s", existsErr)
+			}
+			if !existsInCache {
+				filesMissing = true
+				break
+			}
 		}
-		if !existsInCache {
-			filesMissing = true
-			break
+
+		// Check the cache
+
+		if !filesMissing {
+			logger.Debugf("mongod from %s exists in cache at %s", urlStr, dirPath)
+			return mp, nil
 		}
 	}
-	// Check the cache
-
-	if !filesMissing {
-		logger.Debugf("mongod from %s exists in cache at %s", urlStr, dirPath)
-		return mp, nil
-	}
-
 	downloadStartTime := time.Now()
 	if urlStr != "" {
 		err := extractURLToDest(logger, urlStr, dirPath, mongodFiles)

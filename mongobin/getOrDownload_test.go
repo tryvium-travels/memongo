@@ -24,7 +24,7 @@ func TestGetOrDownload(t *testing.T) {
 	require.NoError(t, err)
 
 	// First call should download the file
-	path, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug))
+	path, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug), false)
 	require.NoError(t, err)
 
 	assert.Equal(t, cacheDir+"/mongodb-osx-ssl-x86_64-4_0_5_tgz_d50ef2155b/bin/mongod", path.Mongod)
@@ -39,7 +39,7 @@ func TestGetOrDownload(t *testing.T) {
 	assert.True(t, stat.Mode()&0100 != 0)
 
 	// Second call should used the cached file
-	path2, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug))
+	path2, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug), false)
 	require.NoError(t, err)
 
 	assert.Equal(t, path, path2)
@@ -67,7 +67,7 @@ func TestGetOrDownloadDifferentFilesystems(t *testing.T) {
 	require.NoError(t, err)
 
 	// First call should download the file
-	path, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug))
+	path, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug), false)
 	require.NoError(t, err)
 
 	assert.Equal(t, cacheDir+"/bin/mongodb-osx-ssl-x86_64-4_0_5_tgz_d50ef2155b/mongod", path)
@@ -79,7 +79,7 @@ func TestGetOrDownloadDifferentFilesystems(t *testing.T) {
 	assert.True(t, stat.Mode()&0100 != 0)
 
 	// Second call should used the cached file
-	path2, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug))
+	path2, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), spec.GetShellDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug), false)
 	require.NoError(t, err)
 
 	assert.Equal(t, path, path2)

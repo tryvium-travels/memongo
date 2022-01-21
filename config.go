@@ -53,12 +53,16 @@ type Options struct {
 	// not include download time, only startup time. Defaults to 10 seconds.
 	StartupTimeout time.Duration
 
-	// The URL to get mongosh from
+	// If given, mongosh will be downloaded from this URL instead of the default
+	// URL.
 	ShellDownloadURL string
 
 	// If set, pass the --auth flag to mongod. This will allow tests to setup
 	// authentication.
 	Auth bool
+
+	// If true, mongo dependencies will be downloaded even if they already exist
+	ForceDownload bool
 }
 
 func (opts *Options) fillDefaults() error {
@@ -68,6 +72,7 @@ func (opts *Options) fillDefaults() error {
 	if opts.MongoShellBin == "" {
 		opts.MongoShellBin = os.Getenv("MEMONGO_MONGOSH_BIN")
 	}
+
 	if opts.MongodBin == "" || opts.MongoShellBin == "" {
 		// The user didn't give us a local path to a binary. That means we need
 		// a download URL and a cache path.
@@ -151,7 +156,7 @@ func (opts *Options) getLogger() *memongolog.Logger {
 func (opts *Options) getOrDownloadBinPath() (*mongobin.MongoPaths, error) {
 
 	// Download or fetch from cache
-	binPath, err := mongobin.GetOrDownloadMongod(opts.DownloadURL, opts.ShellDownloadURL, opts.CachePath, opts.getLogger())
+	binPath, err := mongobin.GetOrDownloadMongod(opts.DownloadURL, opts.ShellDownloadURL, opts.CachePath, opts.getLogger(), opts.ForceDownload)
 	if err != nil {
 		return nil, err
 	}
