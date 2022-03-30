@@ -98,57 +98,55 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 			return "", fmt.Errorf("error reading from tar: %s", tarErr)
 		}
 
-		if strings.HasSuffix(nextFile.Name, "bin/mongod") {
-			break
-		}
-	}
-
-	mkdirErr := Afs.MkdirAll(path.Dir(mongodPath), 0755)
-	if mkdirErr != nil {
-		return "", fmt.Errorf("error creating directory %s: %s", path.Dir(mongodPath), mkdirErr)
-	}
-
-	// Extract to a temp file first, then copy to the destination, so we get
-	// atomic behavior if there's multiple parallel downloaders
-	mongodTmpFile, tmpFileErr := Afs.TempFile("", "")
-	if tmpFileErr != nil {
-		return "", fmt.Errorf("error creating temp file for mongod: %s", tmpFileErr)
-	}
-	defer func() {
-		_ = mongodTmpFile.Close()
-	}()
-
-	_, writeErr := io.Copy(mongodTmpFile, tarReader)
-	if writeErr != nil {
-		return "", fmt.Errorf("error writing mongod binary at %s: %s", mongodTmpFile.Name(), writeErr)
-	}
-
-	_ = mongodTmpFile.Close()
-
-	chmodErr := Afs.Chmod(mongodTmpFile.Name(), 0755)
-	if chmodErr != nil {
-		return "", fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
-	}
-
-	renameErr := Afs.Rename(mongodTmpFile.Name(), mongodPath)
-	if renameErr != nil {
-		linkErr := &os.LinkError{}
-		if errors.As(renameErr, &linkErr) {
-			// If /tmp is on another filesystem, we have to copy the file instead.
-			logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
-			mongodFile, err := Afs.Create(mongodPath)
-			if err != nil {
-				return "", fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
+		if strings.HasSuffix(nextFile.Name, "bin/mongod") || strings.HasSuffix(nextFile.Name, "bin/mongo") {
+			mkdirErr := Afs.MkdirAll(path.Dir(mongodPath), 0755)
+			if mkdirErr != nil {
+				return "", fmt.Errorf("error creating directory %s: %s", path.Dir(mongodPath), mkdirErr)
 			}
-			defer mongodFile.Close()
 
-			_, copyErr := io.Copy(mongodFile, mongodTmpFile)
-			if copyErr != nil {
-				fmt.Errorf("error copying mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, copyErr)
+			// Extract to a temp file first, then copy to the destination, so we get
+			// atomic behavior if there's multiple parallel downloaders
+			mongodTmpFile, tmpFileErr := Afs.TempFile("", "")
+			if tmpFileErr != nil {
+				return "", fmt.Errorf("error creating temp file for mongod: %s", tmpFileErr)
+			}
+			defer func() {
+				_ = mongodTmpFile.Close()
+			}()
+
+			_, writeErr := io.Copy(mongodTmpFile, tarReader)
+			if writeErr != nil {
+				return "", fmt.Errorf("error writing mongod binary at %s: %s", mongodTmpFile.Name(), writeErr)
+			}
+
+			_ = mongodTmpFile.Close()
+
+			chmodErr := Afs.Chmod(mongodTmpFile.Name(), 0755)
+			if chmodErr != nil {
+				return "", fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
+			}
+
+			renameErr := Afs.Rename(mongodTmpFile.Name(), mongodPath)
+			if renameErr != nil {
+				linkErr := &os.LinkError{}
+				if errors.As(renameErr, &linkErr) {
+					// If /tmp is on another filesystem, we have to copy the file instead.
+					logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
+					mongodFile, err := Afs.Create(mongodPath)
+					if err != nil {
+						return "", fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
+					}
+					defer mongodFile.Close()
+
+					_, copyErr := io.Copy(mongodFile, mongodTmpFile)
+					if copyErr != nil {
+						fmt.Errorf("error copying mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, copyErr)
+					}
+				}
+
+				return "", fmt.Errorf("error writing mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, renameErr)
 			}
 		}
-
-		return "", fmt.Errorf("error writing mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, renameErr)
 	}
 
 	logger.Infof("finished downloading mongod to %s in %s", mongodPath, time.Since(downloadStartTime).String())
