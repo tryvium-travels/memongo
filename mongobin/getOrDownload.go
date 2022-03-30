@@ -100,7 +100,7 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 		}
 
 		if strings.HasSuffix(nextFile.Name, "bin/mongod") || strings.HasSuffix(nextFile.Name, "bin/mongo") {
-			s, err := saveFile(path.Join(dirPath, filepath.Base("nextFile.Name")), tarReader, logger)
+			s, err := saveFile(path.Join(dirPath, filepath.Base(nextFile.Name)), tarReader, logger)
 			if err != nil {
 				return s, err
 			}
