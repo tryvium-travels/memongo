@@ -165,8 +165,9 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	// ---------- START OF REPLICA CODE ----------
 	if opts.ShouldUseReplica {
+		mongoPath := binPath[0 : len(binPath)-1]
 		//nolint:gosec
-		mongoCommand := fmt.Sprintf("mongo --port %d --retryWrites --eval \"rs.initiate()\"", opts.Port)
+		mongoCommand := fmt.Sprintf("%s --port %d --retryWrites --eval \"rs.initiate()\"", mongoPath, opts.Port)
 		//nolint:gosec
 		replicaSetCommand := exec.Command("bash", "-c", mongoCommand)
 		replicaSetCommand.Stdout = stdoutHandler
@@ -177,7 +178,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 		if err2 != nil {
 			logger.Warnf("Error initiating replica: %v", err2)
 
-			return nil, err
+			return nil, err2
 		}
 
 		logger.Debugf("Started mongo replica")

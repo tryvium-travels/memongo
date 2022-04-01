@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -89,6 +90,8 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 
 	tarReader := tar.NewReader(gzReader)
 
+	const maxFilesCount = 2
+	fileCount := 0
 	for {
 		nextFile, tarErr := tarReader.Next()
 		if tarErr == io.EOF {
@@ -98,21 +101,34 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 			return "", fmt.Errorf("error reading from tar: %s", tarErr)
 		}
 
-		if strings.HasSuffix(nextFile.Name, "bin/mongod") {
-			break
+		if strings.HasSuffix(nextFile.Name, "bin/mongod") || strings.HasSuffix(nextFile.Name, "bin/mongo") {
+			fileCount++
+			err := saveFile(path.Join(dirPath, filepath.Base(nextFile.Name)), tarReader, logger)
+			if err != nil {
+				return "", err
+			}
+			if fileCount >= maxFilesCount {
+				break
+			}
 		}
 	}
 
+	logger.Infof("finished downloading mongod to %s in %s", mongodPath, time.Since(downloadStartTime).String())
+
+	return mongodPath, nil
+}
+
+func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logger) error {
 	mkdirErr := Afs.MkdirAll(path.Dir(mongodPath), 0755)
 	if mkdirErr != nil {
-		return "", fmt.Errorf("error creating directory %s: %s", path.Dir(mongodPath), mkdirErr)
+		return fmt.Errorf("error creating directory %s: %s", path.Dir(mongodPath), mkdirErr)
 	}
 
 	// Extract to a temp file first, then copy to the destination, so we get
 	// atomic behavior if there's multiple parallel downloaders
 	mongodTmpFile, tmpFileErr := Afs.TempFile("", "")
 	if tmpFileErr != nil {
-		return "", fmt.Errorf("error creating temp file for mongod: %s", tmpFileErr)
+		return fmt.Errorf("error creating temp file for mongod: %s", tmpFileErr)
 	}
 	defer func() {
 		_ = mongodTmpFile.Close()
@@ -120,14 +136,14 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 
 	_, writeErr := io.Copy(mongodTmpFile, tarReader)
 	if writeErr != nil {
-		return "", fmt.Errorf("error writing mongod binary at %s: %s", mongodTmpFile.Name(), writeErr)
+		return fmt.Errorf("error writing mongod binary at %s: %s", mongodTmpFile.Name(), writeErr)
 	}
 
 	_ = mongodTmpFile.Close()
 
 	chmodErr := Afs.Chmod(mongodTmpFile.Name(), 0755)
 	if chmodErr != nil {
-		return "", fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
+		return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
 	}
 
 	renameErr := Afs.Rename(mongodTmpFile.Name(), mongodPath)
@@ -138,7 +154,7 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 			logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
 			mongodFile, err := Afs.Create(mongodPath)
 			if err != nil {
-				return "", fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
+				return fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
 			}
 			defer mongodFile.Close()
 
@@ -148,12 +164,9 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 			}
 		}
 
-		return "", fmt.Errorf("error writing mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, renameErr)
+		return fmt.Errorf("error writing mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, renameErr)
 	}
-
-	logger.Infof("finished downloading mongod to %s in %s", mongodPath, time.Since(downloadStartTime).String())
-
-	return mongodPath, nil
+	return nil
 }
 
 // After the download a tarball, we extract it to a directory in the cache.
