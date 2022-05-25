@@ -29,6 +29,31 @@ func init() {
 	}
 }
 
+func MoveFile(sourcePath, destPath string) error {
+	inputFile, err := os.Open(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Couldn't open source file: %s", err)
+	}
+	outputFile, err := os.Create(destPath)
+	if err != nil {
+		inputFile.Close()
+		return fmt.Errorf("Couldn't open dest file: %s", err)
+	}
+	defer outputFile.Close()
+	_, err = io.Copy(outputFile, inputFile)
+
+	inputFile.Close()
+	if err != nil {
+		return fmt.Errorf("Writing to output file failed: %s", err)
+	}
+	// The copy was successful, so now delete the original file
+	err = os.Remove(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Failed removing original file: %s", err)
+	}
+	return nil
+}
+
 // GetOrDownloadMongod returns the path to the mongod binary from the tarball
 // at the given URL. If the URL has not yet been downloaded, it's downloaded
 // and saved the the cache. If it has been downloaded, the existing mongod
@@ -151,20 +176,17 @@ func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logge
 		linkErr := &os.LinkError{}
 		if errors.As(renameErr, &linkErr) {
 			// If /tmp is on another filesystem, we have to copy the file instead.
-			logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
-			mongodFile, err := Afs.Create(mongodPath)
-			if err != nil {
-				return fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
-			}
-			defer mongodFile.Close()
 
-			_, copyErr := io.Copy(mongodFile, mongodTmpFile)
-			if copyErr != nil {
-				fmt.Errorf("error copying mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, copyErr)
+			logger.Debugf("Going to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
+			MoveFile(mongodTmpFile.Name(), mongodPath)
+
+			chmodErr := Afs.Chmod(mongodPath, 0755)
+			if chmodErr != nil {
+				return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodPath, chmodErr)
 			}
+
 		}
 
-		return fmt.Errorf("error writing mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, renameErr)
 	}
 	return nil
 }
