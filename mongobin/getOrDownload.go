@@ -158,13 +158,15 @@ func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logge
 			}
 			defer mongodFile.Close()
 
-			_, copyErr := io.Copy(mongodFile, mongodTmpFile)
+			content, err := Afs.ReadFile(mongodTmpFile.Name())
+			if err != nil {
+				fmt.Println("ERROR:", err)
+			}
+			_, copyErr := mongodFile.Write(content)
 			if copyErr != nil {
 				fmt.Errorf("error copying mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, copyErr)
 			}
 		}
-
-		return fmt.Errorf("error writing mongod binary from %s to %s: %s", mongodTmpFile.Name(), mongodPath, renameErr)
 	}
 	return nil
 }
