@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/acobaugh/osrelease v0.0.0-20181218015638-a93a0a55a249
+	github.com/golang/mock v1.6.0
 	github.com/spf13/afero v1.6.0
 	github.com/stretchr/testify v1.7.0
 	go.mongodb.org/mongo-driver v1.9.1
@@ -12,7 +13,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
