@@ -1,7 +1,7 @@
-PRETTY_NAME="Debian GNU/Linux 7 (old)"
+PRETTY_NAME="Debian GNU/Linux 11 (bullseye)"
 NAME="Debian GNU/Linux"
-VERSION_ID="7"
-VERSION="7 (old)"
+VERSION_ID="11"
+VERSION="11 (buster)"
 ID=debian
 HOME_URL="https://www.debian.org/"
 SUPPORT_URL="https://www.debian.org/support"

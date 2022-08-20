@@ -31,6 +31,8 @@ type DownloadSpec struct {
 	Arch string
 
 	// OSName is one of:
+	// - ubuntu2204
+	// - ubuntu2004
 	// - ubuntu1804
 	// - ubuntu1604
 	// - ubuntu1404
@@ -221,6 +223,12 @@ func osNameFromOsRelease(osRelease map[string]string, mongoVersion []int) string
 	return ""
 }
 func osNameFromUbuntuRelease(majorVersion int, mongoVersion []int) string {
+	if majorVersion >= 22 && versionGTE(mongoVersion, []int{4, 0, 1}) {
+		return "ubuntu2204"
+	}
+	if majorVersion >= 20 && versionGTE(mongoVersion, []int{4, 0, 1}) {
+		return "ubuntu2004"
+	}
 	if majorVersion >= 18 && versionGTE(mongoVersion, []int{4, 0, 1}) {
 		return "ubuntu1804"
 	}
@@ -234,6 +242,9 @@ func osNameFromUbuntuRelease(majorVersion int, mongoVersion []int) string {
 }
 
 func osNameFromDebianRelease(majorVersion int, mongoVersion []int) string {
+	if majorVersion >= 11 && versionGTE(mongoVersion, []int{4, 2, 1}) {
+		return "debian11"
+	}
 	if majorVersion >= 10 && versionGTE(mongoVersion, []int{4, 2, 1}) {
 		return "debian10"
 	}
