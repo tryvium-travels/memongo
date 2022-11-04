@@ -1,8 +1,6 @@
-# memongo
+![Memongo logo](assets/logo.png)
 
-<center>
-  <img src="./assets/logo.png" style="margin:25px" height="200">
-</center>
+# memongo
 
 [![CI](https://github.com/tryvium-travels/memongo/workflows/Go/badge.svg)](https://github.com/tryvium-travels/memongo/actions?workflow=Go) [![GoDoc](https://godoc.org/github.com/tryvium-travels/memongo?status.svg)](https://godoc.org/github.com/tryvium-travels/memongo) [![Go Report Card](https://goreportcard.com/badge/github.com/tryvium-travels/memongo)](https://goreportcard.com/report/github.com/tryvium-travels/memongo)
 
