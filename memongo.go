@@ -2,6 +2,7 @@ package memongo
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,7 +15,12 @@ import (
 
 	"github.com/tryvium-travels/memongo/memongolog"
 	"github.com/tryvium-travels/memongo/monitor"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+const mongoConnectionTemplate = "mongodb://localhost:%d/?directConnection=true"
 
 // Server represents a running MongoDB server
 type Server struct {
@@ -165,20 +171,29 @@ func StartWithOptions(opts *Options) (*Server, error) {
 
 	// ---------- START OF REPLICA CODE ----------
 	if opts.ShouldUseReplica {
-		mongoPath := binPath[0 : len(binPath)-1]
-		//nolint:gosec
-		mongoCommand := fmt.Sprintf("%s --port %d --retryWrites --eval \"rs.initiate()\"", mongoPath, opts.Port)
-		//nolint:gosec
-		replicaSetCommand := exec.Command("bash", "-c", mongoCommand)
-		replicaSetCommand.Stdout = stdoutHandler
-		replicaSetCommand.Stderr = stderrHandler(logger)
+		ctx := context.Background()
+		connectionURL := fmt.Sprintf(mongoConnectionTemplate, opts.Port)
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionURL))
+		if err != nil {
+			logger.Warnf("error while connect to localhost database: %w", err)
+			return nil, err
+		}
 
-		// Initiate Replica
-		err2 := replicaSetCommand.Run()
-		if err2 != nil {
-			logger.Warnf("Error initiating replica: %v", err2)
+		if err := client.Ping(ctx, nil); err != nil {
+			logger.Warnf("error while ping to localhost database: %w", err)
+			return nil, err
+		}
 
-			return nil, err2
+		var result bson.M
+		err = client.Database("admin").RunCommand(ctx, bson.D{{Key: "replSetInitiate", Value: nil}}).Decode(&result)
+		if err != nil {
+			logger.Warnf("error while init replica set: %w", err)
+			return nil, err
+		}
+
+		if err := client.Disconnect(ctx); err != nil {
+			logger.Warnf("error while disconnect from localhost database: %w", err)
+			return nil, err
 		}
 
 		logger.Debugf("Started mongo replica")
