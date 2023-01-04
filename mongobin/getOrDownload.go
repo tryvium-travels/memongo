@@ -85,11 +85,10 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 	// Extract mongod
 	gzReader, gzErr := gzip.NewReader(tgzTempFile)
 	if gzErr != nil {
-		return "", fmt.Errorf("error intializing gzip reader from %s: %s", tgzTempFile.Name(), gzErr)
+		return "", fmt.Errorf("error intializing gzip reader from %s: %w, %s", tgzTempFile.Name(), gzErr, urlStr)
 	}
 
 	tarReader := tar.NewReader(gzReader)
-
 	for {
 		nextFile, tarErr := tarReader.Next()
 		if tarErr == io.EOF {
@@ -104,7 +103,6 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 			if err != nil {
 				return "", err
 			}
-
 			break
 		}
 	}
