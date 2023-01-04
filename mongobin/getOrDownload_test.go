@@ -53,14 +53,13 @@ func TestGetOrDownload(t *testing.T) {
 }
 
 func TestGetOrDownloadDifferentFilesystems(t *testing.T) {
-
 	FS := afero.NewMemMapFs() // afero.NewOsFs()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mockAfero.NewMockFs(ctrl)
 
-	m.EXPECT().Rename(gomock.Any(), gomock.Any()).Return(&os.LinkError{"rename", "oldname", "newname", errors.New("rename error")}).Times(2)
+	m.EXPECT().Rename(gomock.Any(), gomock.Any()).Return(&os.LinkError{"rename", "oldname", "newname", errors.New("rename error")}).Times(1)
 
 	// General mock faking :)
 	m.EXPECT().Mkdir(gomock.Any(), gomock.Any()).DoAndReturn(func(dir string, perm fs.FileMode) error { return FS.Mkdir(dir, perm) }).AnyTimes()
