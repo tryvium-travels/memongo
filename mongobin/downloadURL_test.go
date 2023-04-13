@@ -49,6 +49,17 @@ func TestGetDownloadURL(t *testing.T) {
 			},
 			expectedURL: "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-VERSION.tgz",
 		},
+		"arm64 mac": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "osx",
+				Arch:     "arm64",
+				OSName:   "",
+			},
+			mongoVersions: []string{
+				"6.0.0",
+			},
+			expectedURL: "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-VERSION.tgz",
+		},
 		"ubuntu 18.04": {
 			spec: &mongobin.DownloadSpec{
 				Platform: "linux",
@@ -57,6 +68,33 @@ func TestGetDownloadURL(t *testing.T) {
 			},
 			mongoVersions: []string{"4.0.1", "4.0.13", "4.2.1"},
 			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-VERSION.tgz",
+		},
+		"arm64 ubuntu 18.04": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "aarch64",
+				OSName:   "ubuntu1804",
+			},
+			mongoVersions: []string{"4.2.1", "4.4.0", "6.0.0"},
+			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu1804-VERSION.tgz",
+		},
+		"arm64 ubuntu 20.04": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "aarch64",
+				OSName:   "ubuntu2004",
+			},
+			mongoVersions: []string{"4.4.0", "6.0.0"},
+			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2004-VERSION.tgz",
+		},
+		"arm64 ubuntu 22.04": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "aarch64",
+				OSName:   "ubuntu2204",
+			},
+			mongoVersions: []string{"6.0.4"},
+			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2204-VERSION.tgz",
 		},
 		"ubuntu 16.04": {
 			spec: &mongobin.DownloadSpec{
@@ -68,6 +106,17 @@ func TestGetDownloadURL(t *testing.T) {
 				"3.2.7", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13", "4.2.1",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-VERSION.tgz",
+		},
+		"arm64 ubuntu 16.04": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "arm64",
+				OSName:   "ubuntu1604",
+			},
+			mongoVersions: []string{
+				"3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13",
+			},
+			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-VERSION.tgz",
 		},
 		"ubuntu 14.04": {
 			spec: &mongobin.DownloadSpec{
@@ -88,6 +137,15 @@ func TestGetDownloadURL(t *testing.T) {
 			},
 			mongoVersions: mongoVersionsToTest,
 			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-suse12-VERSION.tgz",
+		},
+		"ARM64 RHEL 8.2": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "aarch64",
+				OSName:   "rhel82",
+			},
+			mongoVersions: []string{"4.4.4", "5.0.1", "6.0.4"},
+			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-rhel82-VERSION.tgz",
 		},
 		"RHEL 7": {
 			spec: &mongobin.DownloadSpec{
@@ -161,6 +219,15 @@ func TestGetDownloadURL(t *testing.T) {
 				"4.0.0", "4.0.13", "4.2.1",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon2-VERSION.tgz",
+		},
+		"ARM64 Amazon Linux 2": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "aarch64",
+				OSName:   "amazon2",
+			},
+			mongoVersions: []string{"4.4.4", "5.0.1", "6.0.4"},
+			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-amazon2-VERSION.tgz",
 		},
 		"Other Linux": {
 			spec: &mongobin.DownloadSpec{

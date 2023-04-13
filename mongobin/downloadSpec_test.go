@@ -10,7 +10,7 @@ import (
 
 const (
 	testMongoVersion   = "4.0.5"
-	latestMongoVersion = "6.0.0"
+	latestMongoVersion = "6.0.4"
 )
 
 func TestMakeDownloadSpec(t *testing.T) {
@@ -46,6 +46,19 @@ func TestMakeDownloadSpec(t *testing.T) {
 				OSName:         "",
 			},
 		},
+		"arm64 mac and newer mongo": {
+			goOs:         "darwin",
+			goArch:       "arm64",
+			mongoVersion: latestMongoVersion,
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        latestMongoVersion,
+				Platform:       "osx",
+				SSLBuildNeeded: false,
+				Arch:           "arm64",
+				OSName:         "",
+			},
+		},
 		"windows": {
 			goOs: "windows",
 
@@ -60,6 +73,19 @@ func TestMakeDownloadSpec(t *testing.T) {
 				Platform:       "linux",
 				SSLBuildNeeded: false,
 				Arch:           "x86_64",
+				OSName:         "ubuntu2204",
+			},
+		},
+		"arm64 ubuntu 22.04 newer mongo": {
+			mongoVersion: latestMongoVersion,
+			etcFolder:    "ubuntu2204",
+			goArch:       "arm64",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        latestMongoVersion,
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "aarch64",
 				OSName:         "ubuntu2204",
 			},
 		},
@@ -87,6 +113,19 @@ func TestMakeDownloadSpec(t *testing.T) {
 				OSName:         "ubuntu2004",
 			},
 		},
+		"arm64 ubuntu 20.04 and newer mongo": {
+			mongoVersion: latestMongoVersion,
+			etcFolder:    "ubuntu2004",
+			goArch:       "arm64",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        latestMongoVersion,
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "aarch64",
+				OSName:         "ubuntu2004",
+			},
+		},
 		"ubuntu 18.04": {
 			mongoVersion: testMongoVersion,
 			etcFolder:    "ubuntu1804",
@@ -96,6 +135,19 @@ func TestMakeDownloadSpec(t *testing.T) {
 				Platform:       "linux",
 				SSLBuildNeeded: false,
 				Arch:           "x86_64",
+				OSName:         "ubuntu1804",
+			},
+		},
+		"arm64 ubuntu 18.04 and newer mongo": {
+			mongoVersion: latestMongoVersion,
+			etcFolder:    "ubuntu1804",
+			goArch:       "arm64",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        latestMongoVersion,
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "aarch64",
 				OSName:         "ubuntu1804",
 			},
 		},
@@ -132,6 +184,19 @@ func TestMakeDownloadSpec(t *testing.T) {
 				Platform:       "linux",
 				SSLBuildNeeded: false,
 				Arch:           "x86_64",
+				OSName:         "ubuntu1604",
+			},
+		},
+		"arm64 ubuntu 16.04": {
+			mongoVersion: testMongoVersion,
+			etcFolder:    "ubuntu1604",
+			goArch:       "arm64",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        testMongoVersion,
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "arm64",
 				OSName:         "ubuntu1604",
 			},
 		},
@@ -339,6 +404,19 @@ func TestMakeDownloadSpec(t *testing.T) {
 				OSName:         "amazon2",
 			},
 		},
+		"ARM64 Amazon Linux 2 and newer mongo": {
+			mongoVersion: latestMongoVersion,
+			etcFolder:    "amazon2",
+			goArch:       "arm64",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        latestMongoVersion,
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "aarch64",
+				OSName:         "amazon2",
+			},
+		},
 		"Amazon Linux 2 older mongo": {
 			mongoVersion: "3.6.5",
 			etcFolder:    "amazon2",
@@ -427,6 +505,61 @@ func TestMakeDownloadSpec(t *testing.T) {
 				Arch:           "x86_64",
 				OSName:         "",
 			},
+		},
+		"MongoDB Unsupported arch for version": {
+			mongoVersion: "3.3.0",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: arm64 support was introduced in Mongo 3.4.0",
+		},
+		"MongoDB Unsupported newer version for arm64 ubuntu1604": {
+			mongoVersion: "6.0.0",
+			etcFolder:    "ubuntu1604",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu1604/arm64, on version 6.0.0",
+		},
+		"MongoDB Unsupported older version for arm64 ubuntu1804": {
+			mongoVersion: "4.1.0",
+			etcFolder:    "ubuntu1804",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu1804/arm64, on version 4.1.0",
+		},
+		"MongoDB Unsupported older version for arm64 ubuntu2004": {
+			mongoVersion: "4.1.0",
+			etcFolder:    "ubuntu2004",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu2004/arm64, on version 4.1.0",
+		},
+		"MongoDB Unsupported older version for arm64 ubuntu2204": {
+			mongoVersion: "4.1.0",
+			etcFolder:    "ubuntu2204",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu2204/arm64, on version 4.1.0",
+		},
+		"MongoDB Unsupported older version for arm64 amazon2": {
+			mongoVersion: "4.1.0",
+			etcFolder:    "amazon2",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, amazon2/arm64, on version 4.1.0",
+		},
+		"MongoDB Unsupported older version for arm64 rhel82": {
+			mongoVersion: "4.1.0",
+			etcFolder:    "rhel82",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, linux/arm64, on version 4.1.0",
+		},
+		"MongoDB Unsupported version for arm mac": {
+			mongoVersion: "4.1.0",
+			goOs:         "darwin",
+			goArch:       "arm64",
+
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, osx/arm64, on version 4.1.0",
 		},
 		"MongoDB 3.0": {
 			mongoVersion: "3.0.2",

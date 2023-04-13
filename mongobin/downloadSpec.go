@@ -1,6 +1,7 @@
 package mongobin
 
 import (
+	"fmt"
 	"io/ioutil"
 	"runtime"
 	"strconv"
@@ -27,7 +28,10 @@ type DownloadSpec struct {
 	// (needed for <4.2)
 	SSLBuildNeeded bool
 
-	// Arch is always "x86_64"
+	// Arch is one of:
+	// - x86_64
+	// - arm64
+	// - aarch64
 	Arch string
 
 	// OSName is one of:
@@ -67,15 +71,14 @@ func MakeDownloadSpec(version string) (*DownloadSpec, error) {
 		ssl = true
 	}
 
-	arch, archErr := detectArch()
-	if archErr != nil {
-		return nil, archErr
-	}
-
 	osName := detectOSName(parsedVersion)
-
 	if platform == "linux" && osName == "" && versionGTE(parsedVersion, []int{4, 2, 0}) {
 		return nil, &UnsupportedSystemError{msg: "MongoDB 4.2 removed support for generic linux tarballs. Specify the download URL manually or use a supported distro. See: https://www.mongodb.com/blog/post/a-proposal-to-endoflife-our-generic-linux-tar-packages"}
+	}
+
+	arch, archErr := detectArch(platform, osName, parsedVersion)
+	if archErr != nil {
+		return nil, archErr
 	}
 
 	return &DownloadSpec{
@@ -141,13 +144,60 @@ func detectPlatform() (string, error) {
 	}
 }
 
-func detectArch() (string, error) {
+func detectArch(platform string, osName string, mongoVersion []int) (string, error) {
 	switch GoArch {
 	case "amd64":
 		return "x86_64", nil
+	case "arm64":
+		return arm64ArchFromOSNameAndVersion(platform, osName, mongoVersion)
 	default:
 		return "", &UnsupportedSystemError{msg: "your architecture, " + GoArch + ", is not supported"}
 	}
+}
+
+func arm64ArchFromOSNameAndVersion(platform string, osName string, mongoVersion []int) (string, error) {
+	// version numbers extracted from https://www.mongodb.com/download-center/community/releases/archive
+	if !versionGTE(mongoVersion, []int{3, 4, 0}) {
+		return "", &UnsupportedSystemError{msg: "arm64 support was introduced in Mongo 3.4.0"}
+	}
+
+	// ubuntu1604 arm support was introduced in version 3.4.0 and removed in version 4.0.27
+	if osName == "ubuntu1604" && !versionGTE(mongoVersion, []int{4, 0, 27}) {
+		return "arm64", nil
+	}
+
+	if osName == "ubuntu1804" && versionGTE(mongoVersion, []int{4, 2, 0}) {
+		return "aarch64", nil
+	}
+
+	if osName == "ubuntu2004" && versionGTE(mongoVersion, []int{4, 4, 0}) {
+		return "aarch64", nil
+	}
+
+	if osName == "ubuntu2204" && versionGTE(mongoVersion, []int{6, 0, 4}) {
+		return "aarch64", nil
+	}
+
+	if osName == "amazon2" && versionGTE(mongoVersion, []int{4, 2, 13}) {
+		return "aarch64", nil
+	}
+
+	// TODO: "rhel82" isn't a value that osName can have yet as osNameFromOsRelease doesn't support this version
+	if osName == "rhel82" && versionGTE(mongoVersion, []int{4, 4, 4}) {
+		return "aarch64", nil
+	}
+
+	if platform == "osx" && versionGTE(mongoVersion, []int{6, 0, 0}) {
+		return "arm64", nil
+	}
+
+	os := osName
+	if os == "" {
+		os = platform
+	}
+
+	versionString := fmt.Sprintf("%d.%d.%d", mongoVersion[0], mongoVersion[1], mongoVersion[2])
+	return "", &UnsupportedSystemError{msg: "Mongo doesn't support your environment, " + os + "/" + GoArch + ", on version " + versionString}
 }
 
 func detectOSName(mongoVersion []int) string {
