@@ -292,7 +292,7 @@ func osNameFromUbuntuRelease(majorVersion int, mongoVersion []int) string {
 }
 
 func osNameFromDebianRelease(majorVersion int, mongoVersion []int) string {
-	if majorVersion >= 11 && versionGTE(mongoVersion, []int{4, 2, 1}) {
+	if majorVersion >= 11 && versionGTE(mongoVersion, []int{5, 0, 8}) {
 		return "debian11"
 	}
 	if majorVersion >= 10 && versionGTE(mongoVersion, []int{4, 2, 1}) {
