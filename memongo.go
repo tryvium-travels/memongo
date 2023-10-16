@@ -69,7 +69,12 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	args := []string{"--dbpath", dbDir, "--port", strconv.Itoa(opts.Port)}
 	if opts.ShouldUseReplica {
 		engine = "wiredTiger"
-		args = append(args, []string{"--replSet", "rs0", "--bind_ip", "localhost"}...)
+		args = append(args, "--replSet", "rs0")
+	} else if strings.HasPrefix(opts.MongoVersion, "7.") {
+		engine = "wiredTiger"
+	}
+	if engine == "wiredTiger" {
+		args = append(args, "--bind_ip", "localhost")
 	}
 
 	if opts.Auth {
