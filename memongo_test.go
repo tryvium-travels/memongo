@@ -3,6 +3,7 @@ package memongo_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/tryvium-travels/memongo"
@@ -16,7 +17,7 @@ import (
 )
 
 func TestDefaultOptions(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0"}
+	versions := []string{"4.4.7", "5.0.0", "7.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -36,7 +37,7 @@ func TestDefaultOptions(t *testing.T) {
 }
 
 func TestWithReplica(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0"}
+	versions := []string{"4.4.7", "5.0.0", "7.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -61,7 +62,7 @@ func TestWithReplica(t *testing.T) {
 }
 
 func TestWithAuth(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0"}
+	versions := []string{"4.4.7", "5.0.0", "7.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -95,7 +96,11 @@ func TestWithAuth(t *testing.T) {
 
 			require.NoError(t, client2.Ping(context.Background(), nil))
 			_, err = client2.ListDatabaseNames(context.Background(), bson.D{})
-			require.EqualError(t, err, "(Unauthorized) command listDatabases requires authentication")
+			if strings.HasPrefix(version, "7.") {
+				require.EqualError(t, err, "(Unauthorized) Command listDatabases requires authentication")
+			} else {
+				require.EqualError(t, err, "(Unauthorized) command listDatabases requires authentication")
+			}
 
 			// Now connect again with auth
 			opts := options.Client().ApplyURI(server.URI())
@@ -115,7 +120,7 @@ func TestWithAuth(t *testing.T) {
 }
 
 func TestWithReplicaAndAuth(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0"}
+	versions := []string{"4.4.7", "5.0.0", "7.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -154,7 +159,11 @@ func TestWithReplicaAndAuth(t *testing.T) {
 
 			require.NoError(t, client2.Ping(context.Background(), nil))
 			_, err = client2.ListDatabaseNames(context.Background(), bson.D{})
-			require.EqualError(t, err, "(Unauthorized) command listDatabases requires authentication")
+			if strings.HasPrefix(version, "7.") {
+				require.EqualError(t, err, "(Unauthorized) Command listDatabases requires authentication")
+			} else {
+				require.EqualError(t, err, "(Unauthorized) command listDatabases requires authentication")
+			}
 
 			// Now connect again with auth
 			opts := options.Client().ApplyURI(server.URI())
