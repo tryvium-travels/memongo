@@ -63,6 +63,10 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("HTTP request failed with status code %d", resp.StatusCode)
+	}
+
 	tgzTempFile, tmpFileErr := Afs.TempFile("", "")
 	if tmpFileErr != nil {
 		return "", fmt.Errorf("error creating temp file for tarball: %s", tmpFileErr)
@@ -85,8 +89,9 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 	// Extract mongod
 	gzReader, gzErr := gzip.NewReader(tgzTempFile)
 	if gzErr != nil {
-		return "", fmt.Errorf("error intializing gzip reader from %s: %w, %s", tgzTempFile.Name(), gzErr, urlStr)
+		return "", fmt.Errorf("error initializing gzip reader from %s: %w, %s", tgzTempFile.Name(), gzErr, urlStr)
 	}
+	defer gzReader.Close()
 
 	tarReader := tar.NewReader(gzReader)
 	for {
