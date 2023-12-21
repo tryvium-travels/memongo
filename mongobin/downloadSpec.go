@@ -276,7 +276,7 @@ func osNameFromUbuntuRelease(majorVersion int, mongoVersion []int) string {
 	if majorVersion >= 22 && versionGTE(mongoVersion, []int{6, 0, 4}) {
 		return "ubuntu2204"
 	}
-	if majorVersion >= 20 && versionGTE(mongoVersion, []int{4, 0, 1}) {
+	if majorVersion >= 20 && versionGTE(mongoVersion, []int{4, 4, 0}) {
 		return "ubuntu2004"
 	}
 	if majorVersion >= 18 && versionGTE(mongoVersion, []int{4, 0, 1}) {

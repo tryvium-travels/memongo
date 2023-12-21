@@ -98,7 +98,7 @@ func TestMakeDownloadSpec(t *testing.T) {
 				Platform:       "linux",
 				SSLBuildNeeded: false,
 				Arch:           "x86_64",
-				OSName:         "ubuntu2204",
+				OSName:         "ubuntu1804", // Ubuntu 22.04 is not supported by Mongo 4.0.5, so it falls back to Ubuntu 18.04
 			},
 		},
 		"ubuntu 20.04": {
@@ -110,7 +110,7 @@ func TestMakeDownloadSpec(t *testing.T) {
 				Platform:       "linux",
 				SSLBuildNeeded: false,
 				Arch:           "x86_64",
-				OSName:         "ubuntu2004",
+				OSName:         "ubuntu1804", // Ubuntu 20.04 is not supported by Mongo 4.0.5, so it falls back to Ubuntu 18.04
 			},
 		},
 		"arm64 ubuntu 20.04 and newer mongo": {
@@ -531,14 +531,14 @@ func TestMakeDownloadSpec(t *testing.T) {
 			etcFolder:    "ubuntu2004",
 			goArch:       "arm64",
 
-			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu2004/arm64, on version 4.1.0",
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu1804/arm64, on version 4.1.0", // The OS name is wrong because we don't support Ubuntu 20.04 on Mongo 4.1.0 so it falls back to Ubuntu 18.04
 		},
 		"MongoDB Unsupported older version for arm64 ubuntu2204": {
 			mongoVersion: "4.1.0",
 			etcFolder:    "ubuntu2204",
 			goArch:       "arm64",
 
-			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu2204/arm64, on version 4.1.0",
+			expectedError: "memongo does not support automatic downloading on your system: Mongo doesn't support your environment, ubuntu1804/arm64, on version 4.1.0", // The OS name is wrong because we don't support Ubuntu 22.04 on Mongo 4.1.0 so it falls back to Ubuntu 18.04
 		},
 		"MongoDB Unsupported older version for arm64 amazon2": {
 			mongoVersion: "4.1.0",
