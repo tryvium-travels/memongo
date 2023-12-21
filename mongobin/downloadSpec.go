@@ -2,7 +2,7 @@ package mongobin
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -213,7 +213,7 @@ func detectOSName(mongoVersion []int) string {
 
 	// We control etcRedhatRelease
 	//nolint:gosec
-	redhatRelease, redhatReleaseErr := ioutil.ReadFile(EtcRedhatRelease)
+	redhatRelease, redhatReleaseErr := os.ReadFile(EtcRedhatRelease)
 	if redhatReleaseErr == nil {
 		return osNameFromRedhatRelease(string(redhatRelease))
 	}
@@ -273,7 +273,7 @@ func osNameFromOsRelease(osRelease map[string]string, mongoVersion []int) string
 	return ""
 }
 func osNameFromUbuntuRelease(majorVersion int, mongoVersion []int) string {
-	if majorVersion >= 22 && versionGTE(mongoVersion, []int{4, 0, 1}) {
+	if majorVersion >= 22 && versionGTE(mongoVersion, []int{6, 0, 4}) {
 		return "ubuntu2204"
 	}
 	if majorVersion >= 20 && versionGTE(mongoVersion, []int{4, 0, 1}) {
