@@ -140,11 +140,6 @@ func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logge
 
 	_ = mongodTmpFile.Close()
 
-	chmodErr := Afs.Chmod(mongodTmpFile.Name(), 0755)
-	if chmodErr != nil {
-		return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
-	}
-
 	renameErr := Afs.Rename(mongodTmpFile.Name(), mongodPath)
 	if renameErr != nil {
 		linkErr := &os.LinkError{}
@@ -167,6 +162,13 @@ func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logge
 			}
 		}
 	}
+
+	chmodErr := Afs.Chmod(mongodPath, 0755)
+	if chmodErr != nil {
+		return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
+	}
+
+	fmt.Println(Afs.Fs.Stat(mongodPath))
 	return nil
 }
 
