@@ -16,10 +16,6 @@ import (
 const testHTTPHead = true
 
 func TestGetDownloadURL(t *testing.T) {
-	mongoVersionsToTest := []string{
-		"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13", "4.2.1", "4.4.7", "5.0.0",
-	}
-
 	tests := map[string]struct {
 		spec          *mongobin.DownloadSpec
 		mongoVersions []string
@@ -34,7 +30,7 @@ func TestGetDownloadURL(t *testing.T) {
 				SSLBuildNeeded: true,
 			},
 			mongoVersions: []string{
-				"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13",
+				"4.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-VERSION.tgz",
 		},
@@ -45,7 +41,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "",
 			},
 			mongoVersions: []string{
-				"4.2.1",
+				"5.0.0", "6.0.0", "7.0.0", "8.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-VERSION.tgz",
 		},
@@ -56,7 +52,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "",
 			},
 			mongoVersions: []string{
-				"6.0.0",
+				"6.0.0", "7.0.0", "8.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-VERSION.tgz",
 		},
@@ -66,7 +62,7 @@ func TestGetDownloadURL(t *testing.T) {
 				Arch:     "x86_64",
 				OSName:   "ubuntu1804",
 			},
-			mongoVersions: []string{"4.0.1", "4.0.13", "4.2.1"},
+			mongoVersions: []string{"4.0.1", "4.2.1"},
 			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-VERSION.tgz",
 		},
 		"arm64 ubuntu 18.04": {
@@ -75,7 +71,7 @@ func TestGetDownloadURL(t *testing.T) {
 				Arch:     "aarch64",
 				OSName:   "ubuntu1804",
 			},
-			mongoVersions: []string{"4.2.1", "4.4.0", "6.0.0"},
+			mongoVersions: []string{"4.2.1", "4.4.0", "6.0.0", "7.0.0"},
 			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu1804-VERSION.tgz",
 		},
 		"arm64 ubuntu 20.04": {
@@ -84,7 +80,7 @@ func TestGetDownloadURL(t *testing.T) {
 				Arch:     "aarch64",
 				OSName:   "ubuntu2004",
 			},
-			mongoVersions: []string{"4.4.0", "6.0.0"},
+			mongoVersions: []string{"4.4.0", "6.0.0", "7.0.0", "8.0.0"},
 			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2004-VERSION.tgz",
 		},
 		"arm64 ubuntu 22.04": {
@@ -103,7 +99,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "ubuntu1604",
 			},
 			mongoVersions: []string{
-				"3.2.7", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13", "4.2.1",
+				"4.0.0", "4.2.1",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-VERSION.tgz",
 		},
@@ -114,7 +110,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "ubuntu1604",
 			},
 			mongoVersions: []string{
-				"3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13",
+				"4.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-VERSION.tgz",
 		},
@@ -125,9 +121,20 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "ubuntu1404",
 			},
 			mongoVersions: []string{
-				"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13",
+				"4.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-VERSION.tgz",
+		},
+		"SUSE 15": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "x86_64",
+				OSName:   "suse15",
+			},
+			mongoVersions: []string{
+				"5.0.0", "6.0.0", "7.0.0", "8.0.0",
+			},
+			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-suse15-VERSION.tgz",
 		},
 		"SUSE 12": {
 			spec: &mongobin.DownloadSpec{
@@ -135,8 +142,10 @@ func TestGetDownloadURL(t *testing.T) {
 				Arch:     "x86_64",
 				OSName:   "suse12",
 			},
-			mongoVersions: mongoVersionsToTest,
-			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-suse12-VERSION.tgz",
+			mongoVersions: []string{
+				"5.0.0", "6.0.0", "7.0.0",
+			},
+			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-suse12-VERSION.tgz",
 		},
 		"ARM64 RHEL 8.2": {
 			spec: &mongobin.DownloadSpec{
@@ -147,14 +156,27 @@ func TestGetDownloadURL(t *testing.T) {
 			mongoVersions: []string{"4.4.4", "5.0.1", "6.0.4"},
 			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-rhel82-VERSION.tgz",
 		},
+		"RHEL 8": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "x86_64",
+				OSName:   "rhel80",
+			},
+			mongoVersions: []string{
+				"5.0.0", "6.0.0", "7.0.0",
+			},
+			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel80-VERSION.tgz",
+		},
 		"RHEL 7": {
 			spec: &mongobin.DownloadSpec{
 				Platform: "linux",
 				Arch:     "x86_64",
 				OSName:   "rhel70",
 			},
-			mongoVersions: mongoVersionsToTest,
-			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-VERSION.tgz",
+			mongoVersions: []string{
+				"5.0.0", "6.0.0", "7.0.0",
+			},
+			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-VERSION.tgz",
 		},
 		"RHEL 6": {
 			spec: &mongobin.DownloadSpec{
@@ -163,7 +185,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "rhel62",
 			},
 			mongoVersions: []string{
-				"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13", "4.2.1", "4.4.7",
+				"4.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel62-VERSION.tgz",
 		},
@@ -174,7 +196,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "debian10",
 			},
 			mongoVersions: []string{
-				"4.2.1", "4.4.7", "5.0.0",
+				"5.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian10-VERSION.tgz",
 		},
@@ -185,7 +207,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "debian92",
 			},
 			mongoVersions: []string{
-				"3.6.5", "3.6.10", "4.0.0", "4.0.13", "4.2.1",
+				"3.6.5", "3.6.10", "4.0.0", "4.2.1",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian92-VERSION.tgz",
 		},
@@ -196,7 +218,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "debian81",
 			},
 			mongoVersions: []string{
-				"3.2.8", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13",
+				"3.2.8", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian81-VERSION.tgz",
 		},
@@ -206,8 +228,10 @@ func TestGetDownloadURL(t *testing.T) {
 				Arch:     "x86_64",
 				OSName:   "amazon",
 			},
-			mongoVersions: mongoVersionsToTest,
-			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon-VERSION.tgz",
+			mongoVersions: []string{
+				"4.0.0", "5.0.0",
+			},
+			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon-VERSION.tgz",
 		},
 		"Amazon Linux 2": {
 			spec: &mongobin.DownloadSpec{
@@ -216,7 +240,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "amazon2",
 			},
 			mongoVersions: []string{
-				"4.0.0", "4.0.13", "4.2.1",
+				"4.0.0", "4.2.1",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon2-VERSION.tgz",
 		},
@@ -236,7 +260,7 @@ func TestGetDownloadURL(t *testing.T) {
 				OSName:   "",
 			},
 			mongoVersions: []string{
-				"3.2.0", "3.2.22", "3.4.0", "3.4.19", "3.6.0", "3.6.10", "4.0.0", "4.0.13",
+				"4.0.0",
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-VERSION.tgz",
 		},

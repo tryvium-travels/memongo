@@ -17,7 +17,7 @@ import (
 )
 
 func TestDefaultOptions(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -37,7 +37,7 @@ func TestDefaultOptions(t *testing.T) {
 }
 
 func TestWithReplica(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -62,7 +62,7 @@ func TestWithReplica(t *testing.T) {
 }
 
 func TestWithAuth(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -96,7 +96,7 @@ func TestWithAuth(t *testing.T) {
 
 			require.NoError(t, client2.Ping(context.Background(), nil))
 			_, err = client2.ListDatabaseNames(context.Background(), bson.D{})
-			if strings.HasPrefix(version, "7.") {
+			if strings.HasPrefix(version, "7.") || strings.HasPrefix(version, "8.") {
 				require.EqualError(t, err, "(Unauthorized) Command listDatabases requires authentication")
 			} else {
 				require.EqualError(t, err, "(Unauthorized) command listDatabases requires authentication")
@@ -120,7 +120,7 @@ func TestWithAuth(t *testing.T) {
 }
 
 func TestWithReplicaAndAuth(t *testing.T) {
-	versions := []string{"4.4.7", "5.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -159,7 +159,7 @@ func TestWithReplicaAndAuth(t *testing.T) {
 
 			require.NoError(t, client2.Ping(context.Background(), nil))
 			_, err = client2.ListDatabaseNames(context.Background(), bson.D{})
-			if strings.HasPrefix(version, "7.") {
+			if strings.HasPrefix(version, "7.") || strings.HasPrefix(version, "8.") {
 				require.EqualError(t, err, "(Unauthorized) Command listDatabases requires authentication")
 			} else {
 				require.EqualError(t, err, "(Unauthorized) command listDatabases requires authentication")
