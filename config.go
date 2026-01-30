@@ -115,10 +115,10 @@ func (opts *Options) fillDefaults() error {
 		}
 
 		opts.Port = port
+	}
 
-		if opts.StartupTimeout == 0 {
-			opts.StartupTimeout = 10 * time.Second
-		}
+	if opts.StartupTimeout == 0 {
+		opts.StartupTimeout = 10 * time.Second
 	}
 
 	return nil
