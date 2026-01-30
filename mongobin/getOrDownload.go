@@ -168,7 +168,6 @@ func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logge
 		return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
 	}
 
-	fmt.Println(Afs.Fs.Stat(mongodPath))
 	return nil
 }
 
