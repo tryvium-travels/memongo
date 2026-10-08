@@ -200,6 +200,15 @@ func TestGetDownloadURL(t *testing.T) {
 			},
 			expectedURL: "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian10-VERSION.tgz",
 		},
+		"Debian bookworm MongoDB 8.3": {
+			spec: &mongobin.DownloadSpec{
+				Platform: "linux",
+				Arch:     "x86_64",
+				OSName:   "debian12",
+			},
+			mongoVersions: []string{"8.3.0"},
+			expectedURL:   "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian12-VERSION.tgz",
+		},
 		"Debian stretch": {
 			spec: &mongobin.DownloadSpec{
 				Platform: "linux",
