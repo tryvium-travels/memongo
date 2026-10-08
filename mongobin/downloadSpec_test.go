@@ -284,6 +284,30 @@ func TestMakeDownloadSpec(t *testing.T) {
 				OSName:         "debian11",
 			},
 		},
+		"Debian bookworm MongoDB 8.3": {
+			mongoVersion: "8.3.0",
+			etcFolder:    "debianbookworm",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        "8.3.0",
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "x86_64",
+				OSName:         "debian12",
+			},
+		},
+		"Debian bookworm older mongo": {
+			mongoVersion: "6.0.4",
+			etcFolder:    "debianbookworm",
+
+			expectedSpec: &mongobin.DownloadSpec{
+				Version:        "6.0.4",
+				Platform:       "linux",
+				SSLBuildNeeded: false,
+				Arch:           "x86_64",
+				OSName:         "debian11",
+			},
+		},
 		"Debian buster new mongo": {
 			mongoVersion: "4.2.1",
 			etcFolder:    "debianbuster",
