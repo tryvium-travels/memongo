@@ -17,7 +17,7 @@ import (
 )
 
 func TestDefaultOptions(t *testing.T) {
-	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.4", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -37,7 +37,7 @@ func TestDefaultOptions(t *testing.T) {
 }
 
 func TestWithReplica(t *testing.T) {
-	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.4", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -62,7 +62,7 @@ func TestWithReplica(t *testing.T) {
 }
 
 func TestWithAuth(t *testing.T) {
-	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.4", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestWithAuth(t *testing.T) {
 }
 
 func TestWithReplicaAndAuth(t *testing.T) {
-	versions := []string{"6.0.0", "7.0.0", "8.0.0"}
+	versions := []string{"6.0.4", "7.0.0", "8.0.0"}
 
 	for _, version := range versions {
 		t.Run(version, func(t *testing.T) {
