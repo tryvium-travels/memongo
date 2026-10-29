@@ -113,3 +113,48 @@ func TestGetOrDownloadDifferentFilesystems(t *testing.T) {
 
 	assert.Equal(t, stat.ModTime(), stat2.ModTime())
 }
+
+// A parallel downloader takes mongod from the cache as soon as it appears there and runs it, so it has to be
+// executable by the time it's moved into place, not only once GetOrDownloadMongod returns.
+func TestGetOrDownloadMongodIsExecutableWhenItAppears(t *testing.T) {
+	FS := afero.NewMemMapFs()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	m := mockAfero.NewMockFs(ctrl)
+
+	renamed := false
+	m.EXPECT().Rename(gomock.Any(), gomock.Any()).DoAndReturn(func(oldname, newname string) error {
+		stat, err := FS.Stat(oldname)
+		require.NoError(t, err)
+		assert.True(t, stat.Mode()&0100 != 0, "mongod is not executable when it's moved into the cache")
+		renamed = true
+		return FS.Rename(oldname, newname)
+	}).Times(1)
+
+	m.EXPECT().Mkdir(gomock.Any(), gomock.Any()).DoAndReturn(func(dir string, perm fs.FileMode) error { return FS.Mkdir(dir, perm) }).AnyTimes()
+	m.EXPECT().Stat(gomock.Any()).DoAndReturn(func(name string) (os.FileInfo, error) { return FS.Stat(name) }).AnyTimes()
+	m.EXPECT().OpenFile(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(name string, flag int, perm os.FileMode) (afero.File, error) {
+		return FS.OpenFile(name, flag, perm)
+	}).AnyTimes()
+	m.EXPECT().Remove(gomock.Any()).DoAndReturn(func(name string) error { return FS.Remove(name) }).AnyTimes()
+	m.EXPECT().MkdirAll(gomock.Any(), gomock.Any()).DoAndReturn(func(dir string, perm fs.FileMode) error { return FS.MkdirAll(dir, perm) }).AnyTimes()
+	m.EXPECT().Chmod(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, mode os.FileMode) error { return FS.Chmod(name, mode) }).AnyTimes()
+	m.EXPECT().Open(gomock.Any()).DoAndReturn(func(name string) (afero.File, error) { return FS.Open(name) }).AnyTimes()
+
+	mongobin.Afs = afero.Afero{Fs: m}
+
+	spec := mongobin.DownloadSpec{
+		Version:        "4.0.5",
+		Platform:       "osx",
+		SSLBuildNeeded: true,
+		Arch:           "x86_64",
+	}
+
+	cacheDir, err := mongobin.Afs.TempDir("", "")
+	require.NoError(t, err)
+
+	_, err = mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug))
+	require.NoError(t, err)
+	assert.True(t, renamed)
+}

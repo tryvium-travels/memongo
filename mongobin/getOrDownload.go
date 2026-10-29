@@ -140,32 +140,41 @@ func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logge
 
 	_ = mongodTmpFile.Close()
 
+	// Make the binary executable before it appears at mongodPath: a parallel downloader that finds it
+	// there takes it from the cache and runs it straight away, so a chmod after the rename leaves a gap
+	// in which it fails with "permission denied".
+	chmodErr := Afs.Chmod(mongodTmpFile.Name(), 0755)
+	if chmodErr != nil {
+		return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile.Name(), chmodErr)
+	}
+
 	renameErr := Afs.Rename(mongodTmpFile.Name(), mongodPath)
 	if renameErr != nil {
 		linkErr := &os.LinkError{}
-		if errors.As(renameErr, &linkErr) {
-			// If /tmp is on another filesystem, we have to copy the file instead.
-			logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
-			mongodFile, err := Afs.Create(mongodPath)
-			if err != nil {
-				return fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
-			}
-			defer mongodFile.Close()
-
-			content, err := Afs.ReadFile(mongodTmpFile.Name())
-			if err != nil {
-				return fmt.Errorf("read file err: %w", err)
-			}
-			_, copyErr := mongodFile.Write(content)
-			if copyErr != nil {
-				return fmt.Errorf("error copying mongod binary from %s to %s: %w", mongodTmpFile.Name(), mongodPath, copyErr)
-			}
+		if !errors.As(renameErr, &linkErr) {
+			return fmt.Errorf("error moving mongod binary from %s to %s: %w", mongodTmpFile.Name(), mongodPath, renameErr)
 		}
-	}
+		// If /tmp is on another filesystem, we have to copy the file instead.
+		logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
+		mongodFile, err := Afs.Create(mongodPath)
+		if err != nil {
+			return fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
+		}
+		defer mongodFile.Close()
 
-	chmodErr := Afs.Chmod(mongodPath, 0755)
-	if chmodErr != nil {
-		return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
+		content, err := Afs.ReadFile(mongodTmpFile.Name())
+		if err != nil {
+			return fmt.Errorf("read file err: %w", err)
+		}
+		_, copyErr := mongodFile.Write(content)
+		if copyErr != nil {
+			return fmt.Errorf("error copying mongod binary from %s to %s: %w", mongodTmpFile.Name(), mongodPath, copyErr)
+		}
+
+		chmodErr := Afs.Chmod(mongodPath, 0755)
+		if chmodErr != nil {
+			return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodPath, chmodErr)
+		}
 	}
 
 	return nil
