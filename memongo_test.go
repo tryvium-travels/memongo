@@ -10,10 +10,10 @@ import (
 	"github.com/tryvium-travels/memongo/memongolog"
 
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 func TestDefaultOptions(t *testing.T) {
@@ -28,7 +28,7 @@ func TestDefaultOptions(t *testing.T) {
 			require.NoError(t, err)
 			defer server.Stop()
 
-			client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(server.URI()))
+			client, err := mongo.Connect(options.Client().ApplyURI(server.URI()))
 			require.NoError(t, err)
 
 			require.NoError(t, client.Ping(context.Background(), nil))
@@ -50,7 +50,7 @@ func TestWithReplica(t *testing.T) {
 			defer server.Stop()
 
 			uri := fmt.Sprintf("%s%s", server.URI(), "/retryWrites=false")
-			client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
+			client, err := mongo.Connect(options.Client().ApplyURI(uri))
 			if err != nil {
 				t.Logf("err Connect: %v", err)
 			}
@@ -74,7 +74,7 @@ func TestWithAuth(t *testing.T) {
 			require.NoError(t, err)
 			defer server.Stop()
 
-			client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(server.URI()))
+			client, err := mongo.Connect(options.Client().ApplyURI(server.URI()))
 			require.NoError(t, err)
 
 			require.NoError(t, client.Ping(context.Background(), nil))
@@ -91,7 +91,7 @@ func TestWithAuth(t *testing.T) {
 			require.NoError(t, res.Err())
 
 			// Verify we cannot connect without auth
-			client2, err := mongo.Connect(context.Background(), options.Client().ApplyURI(server.URI()))
+			client2, err := mongo.Connect(options.Client().ApplyURI(server.URI()))
 			require.NoError(t, err)
 
 			require.NoError(t, client2.Ping(context.Background(), nil))
@@ -109,7 +109,7 @@ func TestWithAuth(t *testing.T) {
 				Password:   "12345",
 				AuthSource: "admin",
 			}
-			client3, err := mongo.Connect(context.Background(), opts)
+			client3, err := mongo.Connect(opts)
 			require.NoError(t, err)
 
 			require.NoError(t, client3.Ping(context.Background(), nil))
@@ -134,7 +134,7 @@ func TestWithReplicaAndAuth(t *testing.T) {
 			defer server.Stop()
 
 			uri := fmt.Sprintf("%s%s", server.URI(), "/retryWrites=false")
-			client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
+			client, err := mongo.Connect(options.Client().ApplyURI(uri))
 			if err != nil {
 				t.Logf("err Connect: %v", err)
 			}
@@ -154,7 +154,7 @@ func TestWithReplicaAndAuth(t *testing.T) {
 			require.NoError(t, res.Err())
 
 			// Verify we cannot connect without auth
-			client2, err := mongo.Connect(context.Background(), options.Client().ApplyURI(server.URI()))
+			client2, err := mongo.Connect(options.Client().ApplyURI(server.URI()))
 			require.NoError(t, err)
 
 			require.NoError(t, client2.Ping(context.Background(), nil))
@@ -172,7 +172,7 @@ func TestWithReplicaAndAuth(t *testing.T) {
 				Password:   "12345",
 				AuthSource: "admin",
 			}
-			client3, err := mongo.Connect(context.Background(), opts)
+			client3, err := mongo.Connect(opts)
 			require.NoError(t, err)
 
 			require.NoError(t, client3.Ping(context.Background(), nil))

@@ -15,9 +15,9 @@ import (
 
 	"github.com/tryvium-travels/memongo/memongolog"
 	"github.com/tryvium-travels/memongo/monitor"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const mongoConnectionTemplate = "mongodb://localhost:%d/?directConnection=true"
@@ -178,7 +178,7 @@ func StartWithOptions(opts *Options) (*Server, error) {
 	if opts.ShouldUseReplica {
 		ctx := context.Background()
 		connectionURL := fmt.Sprintf(mongoConnectionTemplate, opts.Port)
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionURL))
+		client, err := mongo.Connect(options.Client().ApplyURI(connectionURL))
 		if err != nil {
 			logger.Warnf("error while connect to localhost database: %w", err)
 			return nil, err
