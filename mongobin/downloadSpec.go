@@ -252,6 +252,14 @@ func osNameFromOsRelease(osRelease map[string]string, mongoVersion []int) string
 		return ""
 	}
 
+	// Ubuntu derivatives (e.g. KDE neon) report their own ID but share
+	// Ubuntu's VERSION_ID, so they can use Ubuntu builds.
+	for _, like := range strings.Fields(osRelease["ID_LIKE"]) {
+		if id != "ubuntu" && like == "ubuntu" {
+			id = "ubuntu"
+		}
+	}
+
 	switch id {
 	case "ubuntu":
 		return osNameFromUbuntuRelease(majorVersion, mongoVersion)
