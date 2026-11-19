@@ -59,7 +59,12 @@ func TestGetOrDownloadDifferentFilesystems(t *testing.T) {
 	defer ctrl.Finish()
 	m := mockAfero.NewMockFs(ctrl)
 
-	m.EXPECT().Rename(gomock.Any(), gomock.Any()).Return(&os.LinkError{"rename", "oldname", "newname", errors.New("rename error")}).Times(1)
+	// The move out of /tmp fails as across filesystems; the final rename
+	// inside the cache directory succeeds.
+	gomock.InOrder(
+		m.EXPECT().Rename(gomock.Any(), gomock.Any()).Return(&os.LinkError{Op: "rename", Old: "oldname", New: "newname", Err: errors.New("rename error")}).Times(1),
+		m.EXPECT().Rename(gomock.Any(), gomock.Any()).DoAndReturn(func(oldname, newname string) error { return FS.Rename(oldname, newname) }).Times(1),
+	)
 
 	// General mock faking :)
 	m.EXPECT().Mkdir(gomock.Any(), gomock.Any()).DoAndReturn(func(dir string, perm fs.FileMode) error { return FS.Mkdir(dir, perm) }).AnyTimes()
@@ -99,8 +104,7 @@ func TestGetOrDownloadDifferentFilesystems(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.True(t, stat.Size() > 50000000)
-	// TODO Restore this assert
-	// assert.True(t, stat.Mode()&0100 != 0)
+	assert.True(t, stat.Mode()&0100 != 0)
 
 	// Second call should used the cached file
 	path2, err := mongobin.GetOrDownloadMongod(spec.GetDownloadURL(), cacheDir, memongolog.New(nil, memongolog.LogLevelDebug))

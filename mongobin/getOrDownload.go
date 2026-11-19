@@ -117,56 +117,101 @@ func GetOrDownloadMongod(urlStr string, cachePath string, logger *memongolog.Log
 	return mongodPath, nil
 }
 
+// saveFile writes the mongod binary to mongodPath.
+//
+// Parallel test processes share the cache, and a process that finds
+// mongodPath runs it at once. So the binary must be complete and executable
+// before it appears there: each writer chmods its own temp file and then
+// renames it into place, which is atomic.
 func saveFile(mongodPath string, tarReader *tar.Reader, logger *memongolog.Logger) error {
 	mkdirErr := Afs.MkdirAll(path.Dir(mongodPath), 0755)
 	if mkdirErr != nil {
 		return fmt.Errorf("error creating directory %s: %s", path.Dir(mongodPath), mkdirErr)
 	}
 
-	// Extract to a temp file first, then copy to the destination, so we get
-	// atomic behavior if there's multiple parallel downloaders
 	mongodTmpFile, tmpFileErr := Afs.TempFile("", "")
 	if tmpFileErr != nil {
 		return fmt.Errorf("error creating temp file for mongod: %s", tmpFileErr)
 	}
+	// Some filesystems report the new name after a rename, so keep the
+	// temp path for cleanup.
+	tmpPath := mongodTmpFile.Name()
+	renamed := false
 	defer func() {
 		_ = mongodTmpFile.Close()
+		if !renamed {
+			_ = Afs.Remove(tmpPath)
+		}
 	}()
 
 	_, writeErr := io.Copy(mongodTmpFile, tarReader)
 	if writeErr != nil {
-		return fmt.Errorf("error writing mongod binary at %s: %s", mongodTmpFile.Name(), writeErr)
+		return fmt.Errorf("error writing mongod binary at %s: %s", tmpPath, writeErr)
 	}
 
 	_ = mongodTmpFile.Close()
 
-	renameErr := Afs.Rename(mongodTmpFile.Name(), mongodPath)
-	if renameErr != nil {
-		linkErr := &os.LinkError{}
-		if errors.As(renameErr, &linkErr) {
-			// If /tmp is on another filesystem, we have to copy the file instead.
-			logger.Debugf("Unable to move %s to %s, copying instead", mongodTmpFile.Name(), mongodPath)
-			mongodFile, err := Afs.Create(mongodPath)
-			if err != nil {
-				return fmt.Errorf("creating mongod binary at %s: %s", mongodTmpFile, err)
-			}
-			defer mongodFile.Close()
-
-			content, err := Afs.ReadFile(mongodTmpFile.Name())
-			if err != nil {
-				return fmt.Errorf("read file err: %w", err)
-			}
-			_, copyErr := mongodFile.Write(content)
-			if copyErr != nil {
-				return fmt.Errorf("error copying mongod binary from %s to %s: %w", mongodTmpFile.Name(), mongodPath, copyErr)
-			}
-		}
-	}
-
-	chmodErr := Afs.Chmod(mongodPath, 0755)
+	chmodErr := Afs.Chmod(tmpPath, 0755)
 	if chmodErr != nil {
-		return fmt.Errorf("error chmod-ing mongodb binary at %s: %s", mongodTmpFile, chmodErr)
+		return fmt.Errorf("error chmod-ing mongod binary at %s: %s", tmpPath, chmodErr)
 	}
+
+	renameErr := Afs.Rename(tmpPath, mongodPath)
+	if renameErr == nil {
+		renamed = true
+		return nil
+	}
+
+	linkErr := &os.LinkError{}
+	if !errors.As(renameErr, &linkErr) {
+		return fmt.Errorf("error moving mongod binary from %s to %s: %s", tmpPath, mongodPath, renameErr)
+	}
+
+	// /tmp is on another filesystem: copy the binary into the cache
+	// directory first, so the last step is still an atomic rename.
+	logger.Debugf("Unable to move %s to %s, copying instead", tmpPath, mongodPath)
+
+	return copyIntoPlace(tmpPath, mongodPath)
+}
+
+// copyIntoPlace copies srcPath to a temp file next to mongodPath, makes it
+// executable, and renames it to mongodPath.
+func copyIntoPlace(srcPath, mongodPath string) error {
+	content, err := Afs.ReadFile(srcPath)
+	if err != nil {
+		return fmt.Errorf("read file err: %w", err)
+	}
+
+	dstTmpFile, err := Afs.TempFile(path.Dir(mongodPath), "mongod-")
+	if err != nil {
+		return fmt.Errorf("creating temp file for mongod in %s: %w", path.Dir(mongodPath), err)
+	}
+	dstTmpPath := dstTmpFile.Name()
+	renamed := false
+	defer func() {
+		_ = dstTmpFile.Close()
+		if !renamed {
+			_ = Afs.Remove(dstTmpPath)
+		}
+	}()
+
+	_, copyErr := dstTmpFile.Write(content)
+	if copyErr != nil {
+		return fmt.Errorf("error copying mongod binary from %s to %s: %w", srcPath, dstTmpPath, copyErr)
+	}
+
+	_ = dstTmpFile.Close()
+
+	chmodErr := Afs.Chmod(dstTmpPath, 0755)
+	if chmodErr != nil {
+		return fmt.Errorf("error chmod-ing mongod binary at %s: %w", dstTmpPath, chmodErr)
+	}
+
+	renameErr := Afs.Rename(dstTmpPath, mongodPath)
+	if renameErr != nil {
+		return fmt.Errorf("error moving mongod binary from %s to %s: %w", dstTmpPath, mongodPath, renameErr)
+	}
+	renamed = true
 
 	return nil
 }
